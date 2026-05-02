@@ -1,0 +1,21 @@
+# ==================== 司库数据加载配置 ====================
+# 支持多业务类型扩展（账户、贷款、票据等）
+
+# 月份文件夹匹配模式
+month_folder_pattern: "{year}年{month}月司库账户数据"
+
+# ==================== 业务类型定义 ====================
+business_types:
+  account:
+    label: "账户情况表"
+    files:
+      - regex: '^账户基本信息查询表(?P<date>\d{8})\.xlsx$'
+        file_type: "account_info"
+      - regex: '^账户余额查询表(?P<date>\d{8})\.xlsx$'
+        file_type: "account_balance"
+    parsing:
+      header_row: 1
+
+# ==================== 手工 unit_code 映射 ====================
+# 分公司等未匹配到的开户单位编码，映射到上级单位 entity_report_id
+unit_code_mapping: {}

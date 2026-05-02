@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "my_finance_etl"
+version = "0.1.0"
+description = "财务数据ETL与可视化平台"
+authors = [{name = "Song"}]
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "kedro>=0.19.0",
+    "kedro-datasets>=2.0.0",
+    "pandas>=2.0.0",
+    "openpyxl>=3.0.0",
+    "duckdb>=0.9.0",
+    "flask>=2.0.0",
+    "pyyaml>=6.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.scripts]
+my-finance-etl = "src.my_finance_etl.__main__:main"
+
+[tool.kedro]
+package_name = "my_finance_etl"
+project_name = "My Finance ETL"
+kedro_init_version = "1.1.1"
+source_dir = "src"
+[tool.kedro_telemetry]
+project_id = "15cdd40a1cac4da4a6065c58bd8d7f0a"

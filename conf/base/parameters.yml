@@ -1,0 +1,16 @@
+data_source:
+  base_path: "data/01_raw"
+  month_folder_pattern: "{year}年{month}月财务快报数据"
+  treasury_month_folder_pattern: "{year}年{month}月司库账户数据"
+  enable_finance: false
+  enable_treasury: true
+
+database:
+  type: "duckdb"
+  path: "data/warehouse/finance_warehouse.duckdb"
+
+processing:
+  custom_scripts_dir: "scripts"
+
+organization:
+  root_code: "91110000710924910F"   # 集团总部统一社会信用代码

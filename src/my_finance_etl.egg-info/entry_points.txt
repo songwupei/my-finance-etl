@@ -1,0 +1,2 @@
+[console_scripts]
+my-finance-etl = src.my_finance_etl.__main__:main

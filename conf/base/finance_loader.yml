@@ -1,0 +1,77 @@
+# ==================== 文件命名解析 ====================
+file_name_pattern:
+  patterns:
+    # '模式0：单位 #代码1#代码2 - 后缀',
+    - regex: '^(?P<unit>.+?)\s*(?P<code>#\S+?)-(?P<suffix>[0-9A-Z]+)\.xlsx$'
+      mapping:
+        unit: "{unit}"
+        code: "{code}"
+        suffix: "{suffix}"
+    # 模式3：单位 + 代码 - 后缀
+    - regex: '^(?P<unit>.+?)(?P<code>\d+[A-Z0-9]+)-(?P<suffix>[0-9A-Z]+)\.xlsx$'
+      mapping:
+        unit: "{unit}"
+        code: "{code}"
+        suffix: "{suffix}"
+
+# ==================== 后缀 → 统计口径映射（手工维护） ====================
+suffix_to_caliber:
+  "0": "单户表"
+  "1": "集团差额表"
+  "2": "金融子企业表"
+  "3": "境外子企业表"
+  "4": "事业并企业表"
+  "5": "基建并企业表"
+  "7": "完全汇总表"
+  "9": "集团合并表"
+  "H": "选择汇总表"
+
+# ==================== 工作表类型识别 ====================
+sheet_identification:
+  base_info_pattern: ["封面代码", "司库报表_封面代码", "基础信息"]
+  report_data_pattern: ["主要财务指标快报表", "司库报表_主要财务指标快报表",
+                        "资产负债表", "利润表", "现金流量表"]
+  other_pattern: ["主要分析指标表", "司库报表_主要分析指标表", "DataConstrain"]
+
+# ==================== 基础报表类别识别 ====================
+report_category_rules:
+  sheet_name_patterns:
+    "资产负债表": ["资产负债表", "balance sheet"]
+    "利润表": ["利润表", "损益表"]
+    "现金流量表": ["现金流量表"]
+    "快报综合": ["主要财务指标快报表", "企业主要指标", "快报"]
+
+# ==================== 编号解析规则 ====================
+numbering_rules:
+  enabled: true
+  pattern: '^\s*(\d+(?:[-.]\d+)*)\s*[\.、\s]+'
+  separator: "-"
+  normalize_to: "dash"
+  strip_prefixes: ["其中：", "减：", "加：", "其中,"]
+
+# ==================== 默认解析规则 ====================
+default_rules:
+  skip_rows: 2
+  header_row: 3
+  indicator_column: "项目"
+  value_columns_pattern: ["期末余额", "年初余额", "本期金额", "上期金额", "本月数", "本年累计", "上年同期"]
+  empty_value_fill: 0.0
+  drop_empty_rows: true
+
+# ==================== 工作表覆盖规则 ====================
+sheet_overrides:
+  "司库报表_封面代码":
+    is_base_info: true
+    field_mapping:
+      "企业名称": "unit_name"
+      "本企业代码": "unit_code"
+      "上级企业代码": "parent_code"
+      "报表类型": "reported_caliber_code"
+      "编制日期": "report_date"
+  "司库报表_主要财务指标快报表":
+    is_report: true
+    report_category: "快报综合"
+    skip_rows: 2
+    header_row: 0
+    indicator_column: "项"
+    value_columns: ["本月数", "本年累计", "上年同期"]

@@ -1,0 +1,2 @@
+# Local parameter overrides — loaded on top of conf/base/parameters.yml
+# Example: set data_source.enable_finance: false to skip financial scanning

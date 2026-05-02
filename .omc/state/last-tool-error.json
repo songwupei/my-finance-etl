@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"rtk git log --oneline -5\",\"description\":\"Check git log\"}",
+  "error": "Exit code 128\n致命错误：不是 Git 仓库（或者直至挂载点 / 的任何父目录）\n停止在文件系统边界（未设置 GIT_DISCOVERY_ACROSS_FILESYSTEM）。",
+  "timestamp": "2026-05-02T23:24:54.214Z",
+  "retry_count": 2
+}
