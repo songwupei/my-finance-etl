@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"rtk git log --oneline -5\",\"description\":\"Check git log\"}",
-  "error": "Exit code 128\n致命错误：不是 Git 仓库（或者直至挂载点 / 的任何父目录）\n停止在文件系统边界（未设置 GIT_DISCOVERY_ACROSS_FILESYSTEM）。",
-  "timestamp": "2026-05-02T23:24:54.214Z",
+  "tool_input_preview": "{\"command\":\"git remote set-url origin git@codeberg.org:songwupei/skdata-etl.git && rtk git push -u origin main\",\"timeout\":60000,\"description\":\"Switch to SSH remote and push\"}",
+  "error": "Exit code 128\nFAILED: git push\nssh_askpass: exec(/usr/lib/ssh/ssh-askpass): No such file or directory\r\nHost key verification failed.\r\n致命错误：无法读取远程仓库。\n\n请确认您有正确的访问权限并且仓库存在。",
+  "timestamp": "2026-05-02T23:30:00.047Z",
   "retry_count": 2
 }

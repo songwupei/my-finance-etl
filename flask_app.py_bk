@@ -1,10 +1,7 @@
 from pathlib import Path
-from flask import Flask, jsonify, render_template, request, send_file, url_for
+from flask import Flask, jsonify, render_template, request
 import duckdb
 import yaml
-import subprocess
-import time
-import re
 
 app = Flask(__name__)
 
@@ -39,6 +36,7 @@ def _table_exists(conn, schema: str, table: str) -> bool:
 
 
 def _resolve_entity_id(conn, node_id, tree_period):
+    """从组织树查 entity_report_id，优先匹配 tree_period，失败则回退到任意 period"""
     row = conn.execute(
         "SELECT entity_report_id FROM finance_data.dim_organization_tree WHERE node_id = ? AND period = ?",
         [node_id, tree_period],
@@ -59,15 +57,18 @@ def index():
 
 @app.route("/api/periods")
 def get_periods():
+    """返回所有数据周期（财务 + 司库），用于数据日期下拉框"""
     try:
         conn = db_conn()
         periods = []
+
         if _table_exists(conn, "finance_data", "dim_period"):
             df = conn.execute(
                 "SELECT DISTINCT period_id, period_name FROM finance_data.dim_period ORDER BY period_id DESC"
             ).fetchdf()
             for _, r in df.iterrows():
                 periods.append({"period_id": r["period_id"], "period_name": r["period_name"]})
+
         if _table_exists(conn, "finance_data", "fact_treasury_account_balance"):
             df = conn.execute(
                 "SELECT DISTINCT period, period AS period_name FROM finance_data.fact_treasury_account_balance ORDER BY period DESC"
@@ -75,6 +76,7 @@ def get_periods():
             for _, r in df.iterrows():
                 if r["period"] and not any(p["period_id"] == r["period"] for p in periods):
                     periods.append({"period_id": r["period"], "period_name": r["period"]})
+
         return jsonify(periods)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
@@ -82,6 +84,7 @@ def get_periods():
 
 @app.route("/api/tree_periods")
 def get_tree_periods():
+    """返回组织树可用的 period，用于树日期下拉框"""
     try:
         conn = db_conn()
         if not _table_exists(conn, "finance_data", "dim_organization_tree"):
@@ -137,15 +140,19 @@ def get_node_data():
     data_period = request.args.get("data_period", "")
     if not node_id or not data_period:
         return jsonify([])
+
     try:
         conn = db_conn()
         if not _table_exists(conn, "finance_data", "dim_organization_tree"):
             return jsonify([])
+
         entity_id = _resolve_entity_id(conn, node_id, tree_period)
         if not entity_id:
             return jsonify([])
+
         if not _table_exists(conn, "finance_data", "fact_finance_data"):
             return jsonify([])
+
         df = conn.execute(
             """
             SELECT
@@ -172,7 +179,9 @@ def get_node_data():
             """,
             [entity_id, data_period],
         ).fetchdf()
+
         records = df.to_dict(orient="records")
+        import re
         for r in records:
             std_top = r.get("指标名称", "")
             raw_path = r.get("原始指标名称", "")
@@ -180,6 +189,7 @@ def get_node_data():
             r["标准对比键"] = std_top
             r["原始对比键"] = raw_top
             r["是否匹配"] = re.sub(r'[（(][^）)]*[）)]', '', std_top).strip() == re.sub(r'[（(][^）)]*[）)]', '', raw_top).strip()
+
         return jsonify(records)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
@@ -214,15 +224,19 @@ def get_treasury_data():
     data_period = request.args.get("data_period", "")
     if not node_id or not data_period:
         return jsonify([])
+
     try:
         conn = db_conn()
         if not _table_exists(conn, "finance_data", "dim_organization_tree"):
             return jsonify([])
+
         entity_id = _resolve_entity_id(conn, node_id, tree_period)
         if not entity_id:
             return jsonify([])
+
         if not _table_exists(conn, "finance_data", "fact_treasury_account_balance"):
             return jsonify([])
+
         df = conn.execute(
             """
             SELECT
@@ -245,6 +259,7 @@ def get_treasury_data():
             """,
             [entity_id, data_period],
         ).fetchdf()
+
         return jsonify(df.to_dict(orient="records"))
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
@@ -255,54 +270,6 @@ def get_treasury_business_types():
     return jsonify([
         {"value": "account", "label": "账户情况表"},
     ])
-
-
-# --------------- 报告生成部分 ---------------
-
-@app.route("/api/generate_report")
-def generate_report():
-    year = request.args.get("year", type=int)
-    month = request.args.get("month", type=int)
-    day = request.args.get("day", type=int)
-    if not all([year, month, day]):
-        return jsonify({"success": False, "error": "缺少日期参数"}), 400
-
-    qmd_template = _proj_dir / "reports" / "daily_report_account-gb.md"
-    if not qmd_template.exists():
-        return jsonify({"success": False, "error": "日报模板文件不存在"}), 400
-
-    output_dir = _proj_dir / "generated_reports"
-    output_dir.mkdir(exist_ok=True)
-
-    timestamp = int(time.time())
-    report_basename = f"daily_report_{year}{month:02d}{day:02d}_{timestamp}"
-
-    cmd = [
-        "quarto", "render", str(qmd_template),
-        "-P", f"year:{year}",
-        "-P", f"month:{month}",
-        "-P", f"day:{day}",
-        "--output", report_basename + ".pdf",
-        "--output-dir", str(output_dir)
-    ]
-
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        pdf_path = output_dir / (report_basename + ".pdf")
-        if not pdf_path.exists():
-            raise FileNotFoundError("PDF 生成失败，未找到输出文件")
-        download_url = url_for("download_report", filename=pdf_path.name)
-        return jsonify({"success": True, "url": download_url})
-    except subprocess.CalledProcessError as e:
-        return jsonify({"success": False, "error": e.stderr}), 500
-
-
-@app.route("/download_report/<filename>")
-def download_report(filename):
-    file_path = _proj_dir / "generated_reports" / filename
-    if not file_path.exists():
-        return "文件不存在", 404
-    return send_file(file_path, as_attachment=True)
 
 
 if __name__ == "__main__":
