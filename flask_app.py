@@ -3,8 +3,13 @@ from flask import Flask, jsonify, render_template, request, send_file, url_for
 import duckdb
 import yaml
 import subprocess
+import shutil
 import time
 import re
+import vizro.plotly.express as px
+from vizro import Vizro
+import vizro.models as vm
+import numpy as np
 
 app = Flask(__name__)
 
@@ -261,37 +266,42 @@ def get_treasury_business_types():
 
 @app.route("/api/generate_report")
 def generate_report():
-    year = request.args.get("year", type=int)
-    month = request.args.get("month", type=int)
-    day = request.args.get("day", type=int)
-    if not all([year, month, day]):
-        return jsonify({"success": False, "error": "缺少日期参数"}), 400
+    # TODO(work): 暂时忽略日期参数，后续恢复
+    # year = request.args.get("year", type=int)
+    # month = request.args.get("month", type=int)
+    # day = request.args.get("day", type=int)
+    # if not all([year, month, day]):
+    #     return jsonify({"success": False, "error": "缺少日期参数"}), 400
 
-    qmd_template = _proj_dir / "reports" / "daily_report_account-gb.md"
+    qmd_template = Path("/home/song/NutstoreFiles/5-Quartools/PrettyDoc/SiKuReport/daily_report_account-gb.qmd")
     if not qmd_template.exists():
         return jsonify({"success": False, "error": "日报模板文件不存在"}), 400
 
     output_dir = _proj_dir / "generated_reports"
     output_dir.mkdir(exist_ok=True)
 
+    # TODO(work): 日期参数暂忽略，basename 仅用时间戳
     timestamp = int(time.time())
-    report_basename = f"daily_report_{year}{month:02d}{day:02d}_{timestamp}"
+    report_basename = f"daily_report_{timestamp}"
 
     cmd = [
-        "quarto", "render", str(qmd_template),
-        "-P", f"year:{year}",
-        "-P", f"month:{month}",
-        "-P", f"day:{day}",
-        "--output", report_basename + ".pdf",
-        "--output-dir", str(output_dir)
+        "micromamba", "run", "-n", "quarto", "bash", "-c",
+        "cd /home/song/NutstoreFiles/5-Quartools/PrettyDoc && quarto render SiKuReport/daily_report_account-gb.qmd"
     ]
 
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        pdf_path = output_dir / (report_basename + ".pdf")
-        if not pdf_path.exists():
-            raise FileNotFoundError("PDF 生成失败，未找到输出文件")
-        download_url = url_for("download_report", filename=pdf_path.name)
+        # quarto 输出在 PrettyDoc/_output/SiKuReport/，复制到 generated_reports
+        quarto_pdf = Path("/home/song/NutstoreFiles/5-Quartools/PrettyDoc/_output/SiKuReport/daily_report_account-gb.pdf")
+        if not quarto_pdf.exists():
+            raise FileNotFoundError("PDF 生成失败，quarto 未输出文件")
+        dest_pdf = output_dir / (report_basename + ".pdf")
+        shutil.copy(quarto_pdf, dest_pdf)
+        # 同时复制 docx
+        quarto_docx = Path("/home/song/NutstoreFiles/5-Quartools/PrettyDoc/_output/SiKuReport/daily_report_account-gb.docx")
+        if quarto_docx.exists():
+            shutil.copy(quarto_docx, output_dir / (report_basename + ".docx"))
+        download_url = url_for("download_report", filename=dest_pdf.name)
         return jsonify({"success": True, "url": download_url})
     except subprocess.CalledProcessError as e:
         return jsonify({"success": False, "error": e.stderr}), 500
@@ -304,6 +314,66 @@ def download_report(filename):
         return "文件不存在", 404
     return send_file(file_path, as_attachment=True)
 
+
+# --------------- Vizro 仪表板 ---------------
+
+_vizro_db = "/home/song/NutstoreFiles/5-Quartools/app_py/skdata-etl/data/warehouse/finance_warehouse.duckdb"
+_vizro_con = duckdb.connect(_vizro_db)
+
+# 图1：资产负债表散点 — 货币资金(x) vs 资产总额(y)，颜色=log10(资产总额)
+_vizro_df1 = _vizro_con.execute("""
+    SELECT
+        f.entity_report_id,
+        f.period_id AS 期间,
+        COALESCE(ot.node_name, f.entity_report_id) AS 单位名称,
+        SUM(CASE WHEN sa.account_name = '资产总额' THEN f.value END) AS 资产总额,
+        SUM(CASE WHEN sa.account_name = '货币资金' THEN f.value END) AS 货币资金
+    FROM finance_data.fact_finance_data f
+    JOIN finance_data.dim_standard_account sa ON f.account_code = sa.account_code
+    JOIN finance_data.dim_report_category rc ON f.category_id = rc.category_id
+    LEFT JOIN finance_data.dim_organization_tree ot
+        ON f.entity_report_id = ot.entity_report_id AND ot.period = f.period_id
+    WHERE rc.category_name = '资产负债表'
+      AND sa.account_name IN ('资产总额', '货币资金')
+      AND f.value_column = '本月数'
+    GROUP BY f.entity_report_id, f.period_id, ot.node_name
+    HAVING "资产总额" > 0 AND "货币资金" > 0
+""").fetchdf()
+
+_vizro_df1["log10_资产总额"] = np.log10(_vizro_df1["资产总额"])
+
+# 图2：账户折算金额分布，按金融机构着色
+_vizro_df2 = _vizro_con.execute("""
+    SELECT
+        fb.converted_amount AS 折算金额,
+        fb.period AS 期间,
+        COALESCE(ot.node_name, fb.entity_report_id) AS 单位名称,
+        COALESCE(NULLIF(ta.financial_institution, ''), ta.opening_institution) AS 金融机构
+    FROM finance_data.fact_treasury_account_balance fb
+    JOIN finance_data.dim_treasury_account ta ON fb.account_id = ta.account_id
+    LEFT JOIN finance_data.dim_organization_tree ot
+        ON fb.entity_report_id = ot.entity_report_id AND ot.period = fb.period
+    WHERE fb.converted_amount IS NOT NULL AND fb.converted_amount > 0
+      AND ta.financial_institution IS NOT NULL AND ta.financial_institution != ''
+""").fetchdf()
+
+_vizro_con.close()
+
+_vizro_page = vm.Page(
+    title="穿透监控大屏",
+    components=[
+        vm.Graph(figure=px.scatter(_vizro_df1, x="货币资金", y="资产总额", color="log10_资产总额")),
+        vm.Graph(figure=px.histogram(_vizro_df2, x="折算金额", color="金融机构")),
+    ],
+    controls=[
+        vm.Filter(column="期间"),
+        vm.Filter(column="单位名称"),
+    ],
+)
+
+_vizro_dashboard = vm.Dashboard(pages=[_vizro_page])
+_vizro = Vizro(server=app, url_base_pathname='/vizro/')
+_vizro.build(_vizro_dashboard)
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5001)

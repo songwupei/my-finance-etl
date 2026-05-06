@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"git remote set-url origin git@codeberg.org:songwupei/skdata-etl.git && rtk git push -u origin main\",\"timeout\":60000,\"description\":\"Switch to SSH remote and push\"}",
-  "error": "Exit code 128\nFAILED: git push\nssh_askpass: exec(/usr/lib/ssh/ssh-askpass): No such file or directory\r\nHost key verification failed.\r\n致命错误：无法读取远程仓库。\n\n请确认您有正确的访问权限并且仓库存在。",
-  "timestamp": "2026-05-02T23:30:00.047Z",
-  "retry_count": 2
-}
