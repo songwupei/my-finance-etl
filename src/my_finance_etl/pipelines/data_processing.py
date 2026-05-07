@@ -1,8 +1,17 @@
 """Data processing pipeline for standardization and matching."""
+import os
+import sys
 import pandas as pd
+import yaml
 from kedro.pipeline import Pipeline, node
 
 from ..matcher import StandardAccountMatcher
+
+_AREACODE_PATH = os.path.expanduser(
+    "~/NutstoreFiles/2-Code/1-MyPython/0-MyPyPkg/map_utils"
+)
+if _AREACODE_PATH not in sys.path:
+    sys.path.insert(0, _AREACODE_PATH)
 
 
 def standardize_report_data(
@@ -85,26 +94,58 @@ def build_dimension_tables(
     parameters: dict,
 ) -> dict:
     """Build dimension tables from parsed and processed data."""
-    # dim_unit_report
+    from china_areacode import ChinaDivision
+
+    # 初始化地区展开
+    china_div = ChinaDivision(standard_code_length=6)
+
+    # 安全获取列值的辅助函数
+    def _get(row, key, default=None):
+        if key in parsed_base_info.columns:
+            val = row.get(key)
+            return val if pd.notna(val) else default
+        return default
+
     dim_unit_report_records = []
     for _, row in parsed_base_info.iterrows():
-        unit_name = row.get("unit_name")
-        # 跳过unit_name为空的记录，避免树状图中出现"None"节点
-        if pd.isna(unit_name) or not unit_name:
+        unit_name = _get(row, "unit_name")
+        if not unit_name:
             continue
+
+        # 地区代码展开
+        sasac_code = _get(row, "sasac_area_raw_code", "")
+        sasac_name_raw = _get(row, "sasac_area_raw_name", "")
+        area_info = china_div.get_areaname(sasac_code) if sasac_code else None
+
+        province = (area_info or {}).get("province") or ""
+        city = (area_info or {}).get("city") or ""
+        area = (area_info or {}).get("area") or ""
+
+        # sasac_area_name: 用展开的全称，覆盖原始简称
+        sasac_area_name = f"{province}{city}{area}" if province else sasac_name_raw
+
         record = {
-            "entity_report_id": row.get("entity_report_id"),
+            "entity_report_id": _get(row, "entity_report_id"),
             "unit_name": unit_name,
-            "code": row.get("code"),
-            "suffix": row.get("suffix"),
-            "unit": row.get("unit"),
-            "period": row.get("period"),
+            "code": _get(row, "code"),
+            "suffix": _get(row, "suffix"),
+            "unit": _get(row, "unit"),
+            "period": _get(row, "period"),
+            # 新增字段
+            "country_region_code": _get(row, "country_region_raw_code", ""),
+            "country_region_name": _get(row, "country_region_raw_name", ""),
+            "sasac_area_code": sasac_code or "",
+            "sasac_area_name": sasac_area_name or "",
+            "province": province,
+            "city": city,
+            "area": area,
+            "enterprise_address": _get(row, "enterprise_address", ""),
         }
         dim_unit_report_records.append(record)
 
     dim_unit_report = pd.DataFrame(dim_unit_report_records)
 
-    # dim_caliber
+    # dim_caliber ... (rest unchanged)
     dim_caliber = pd.DataFrame([{
         "caliber_id": "1",
         "caliber_name": "合并口径",
@@ -170,7 +211,6 @@ def build_dimension_tables(
 
     # dim_standard_account (from standard accounts JSON)
     import json
-    import yaml
 
     # Load configuration from indicator_mapping.yml
     indicator_mapping_path = parameters.get("indicator_mapping_path", "conf/base/indicator_mapping.yml")

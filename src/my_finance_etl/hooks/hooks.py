@@ -230,3 +230,61 @@ class DynamicExcelLoaderHooks:
                     result["file_type"] = pattern_config["file_type"]
                 return result
         return None
+
+    # ==================== hooks.yml 执行 ====================
+
+    @hook_impl
+    def after_node_run(
+        self,
+        node,
+        catalog: DataCatalog,
+        inputs: Dict[str, Any],
+        outputs: Dict[str, Any],
+        is_async: bool = False,
+    ) -> None:
+        """节点完成后执行 hooks.yml 中配置的命令。"""
+        self._run_hooks_for_node("after_nodes", node.name)
+
+    def _run_hooks_for_node(self, hook_type: str, node_name: str):
+        """从 conf/base/hooks.yml 加载并执行特定节点的 hook 命令。"""
+        hooks_config_path = Path(settings.CONF_SOURCE) / "base" / "hooks.yml"
+        if not hooks_config_path.exists():
+            return
+
+        try:
+            with open(hooks_config_path, "r") as f:
+                config = yaml.safe_load(f)
+        except Exception:
+            return
+
+        node_hooks = config.get("hooks", {}).get(hook_type, {}).get(node_name, [])
+        if not node_hooks:
+            return
+
+        import subprocess
+
+        for cmd_spec in node_hooks:
+            if isinstance(cmd_spec, str):
+                cmd = cmd_spec
+                cwd = "."
+            elif isinstance(cmd_spec, dict):
+                cmd = cmd_spec.get("cmd", "")
+                cwd = cmd_spec.get("cwd", ".")
+            else:
+                continue
+
+            if not cmd:
+                continue
+
+            self.logger.info(f"Running hook [{hook_type}/{node_name}]: {cmd}")
+            try:
+                subprocess.run(
+                    cmd,
+                    shell=True,
+                    cwd=cwd,
+                    capture_output=True,
+                    text=True,
+                    timeout=3600,
+                )
+            except Exception as e:
+                self.logger.warning(f"Hook command failed: {e}")

@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from flask import Flask, jsonify, render_template, request, send_file, url_for
 import duckdb
@@ -6,10 +7,13 @@ import subprocess
 import shutil
 import time
 import re
+import polars as pl
 import vizro.plotly.express as px
 from vizro import Vizro
 import vizro.models as vm
+from map_utils.china_map import create_china_map_figure
 import numpy as np
+from vizro.models.types import capture
 
 app = Flask(__name__)
 
@@ -29,7 +33,7 @@ DB_PATH = _get_db_path()
 
 
 def db_conn():
-    return duckdb.connect(DB_PATH)
+    return duckdb.connect(DB_PATH, read_only=True)
 
 
 def _table_exists(conn, schema: str, table: str) -> bool:
@@ -290,7 +294,7 @@ def generate_report():
     ]
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        subprocess.run(cmd, capture_output=True, text=True, check=True)
         # quarto 输出在 PrettyDoc/_output/SiKuReport/，复制到 generated_reports
         quarto_pdf = Path("/home/song/NutstoreFiles/5-Quartools/PrettyDoc/_output/SiKuReport/daily_report_account-gb.pdf")
         if not quarto_pdf.exists():
@@ -315,10 +319,49 @@ def download_report(filename):
     return send_file(file_path, as_attachment=True)
 
 
+# --------------- 地图数据 API ---------------
+
+@app.route("/api/units_geo")
+def get_units_geo():
+    """返回所有有经纬度的单位 + 财务摘要。"""
+    try:
+        conn = db_conn()
+        if not all(
+            _table_exists(conn, "finance_data", t)
+            for t in ["dim_unit_report", "dim_unit_geo", "fact_finance_data"]
+        ):
+            return jsonify([])
+        df = conn.execute("""
+            SELECT
+                u.entity_report_id,
+                u.unit_name,
+                u.province,
+                u.city,
+                u.area,
+                g.longitude,
+                g.latitude,
+                u.enterprise_address,
+                u.sasac_area_name,
+                COALESCE(SUM(CASE WHEN f.value_column = '本年累计' AND f.account_code = '01'
+                             THEN f.value END), 0) AS total_assets
+            FROM finance_data.dim_unit_report u
+            JOIN finance_data.dim_unit_geo g
+                ON u.entity_report_id = g.entity_report_id
+            LEFT JOIN finance_data.fact_finance_data f
+                ON u.entity_report_id = f.entity_report_id AND f.period_id = (SELECT MAX(period_id) FROM finance_data.fact_finance_data)
+            WHERE g.longitude IS NOT NULL
+            GROUP BY u.entity_report_id, u.unit_name, u.province, u.city, u.area,
+                     g.longitude, g.latitude, u.enterprise_address, u.sasac_area_name
+        """).fetchdf()
+        return jsonify(df.to_dict(orient="records"))
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 # --------------- Vizro 仪表板 ---------------
 
 _vizro_db = "/home/song/NutstoreFiles/5-Quartools/app_py/skdata-etl/data/warehouse/finance_warehouse.duckdb"
-_vizro_con = duckdb.connect(_vizro_db)
+_vizro_con = duckdb.connect(_vizro_db, read_only=True)
 
 # 图1：资产负债表散点 — 货币资金(x) vs 资产总额(y)，颜色=log10(资产总额)
 _vizro_df1 = _vizro_con.execute("""
@@ -357,9 +400,8 @@ _vizro_df2 = _vizro_con.execute("""
       AND ta.financial_institution IS NOT NULL AND ta.financial_institution != ''
 """).fetchdf()
 
-_vizro_con.close()
-
-_vizro_page = vm.Page(
+_vizro_page_monitor = vm.Page(
+    id="penetration-monitor",
     title="穿透监控大屏",
     components=[
         vm.Graph(figure=px.scatter(_vizro_df1, x="货币资金", y="资产总额", color="log10_资产总额")),
@@ -371,7 +413,117 @@ _vizro_page = vm.Page(
     ],
 )
 
-_vizro_dashboard = vm.Dashboard(pages=[_vizro_page])
+_vizro_page_relationship = vm.Page(
+    id="relationship-analysis",
+    title="关系分析",
+    components=[
+        vm.Card(text="关系分析页面 — 内容待开发"),
+    ],
+)
+
+_vizro_page_overview = vm.Page(
+    id="overview",
+    title="概览",
+    components=[
+        vm.Card(text="概览页面 — 内容待开发"),
+    ],
+)
+
+# 图3：中国地图 — 单位地理分布 + 资产规模
+_vizro_geo_data = pl.DataFrame()
+try:
+    _vizro_geo_data = _vizro_con.execute("""
+        SELECT
+            u.unit_name,
+            u.province,
+            u.city,
+            u.enterprise_address,
+            g.longitude,
+            g.latitude,
+            COALESCE(SUM(CASE WHEN f.value_column = '本年累计' AND f.account_code = '01'
+                         THEN f.value END), 0) AS total_assets,
+            COALESCE(SUM(CASE WHEN f.value_column = '本年累计' AND f.account_code = '54'
+                         THEN f.value END), 0) AS total_revenue
+        FROM finance_data.dim_unit_report u
+        JOIN finance_data.dim_unit_geo g
+            ON u.entity_report_id = g.entity_report_id
+        LEFT JOIN finance_data.fact_finance_data f
+            ON u.entity_report_id = f.entity_report_id
+           AND f.period_id = (SELECT MAX(period_id) FROM finance_data.fact_finance_data)
+        WHERE g.longitude IS NOT NULL AND u.suffix NOT IN ('1', '9')
+        GROUP BY u.entity_report_id, u.unit_name, u.province, u.city,
+                 u.enterprise_address, g.longitude, g.latitude
+    """).fetchdf()
+except Exception:
+    pass
+
+_vizro_geo_fig = None
+if _vizro_geo_data.shape[0] > 0:
+    _vizro_geo_data["size_scaled"] = np.log10(_vizro_geo_data["total_assets"].clip(lower=1))
+    _vizro_geo_data["hover_text"] = (
+        _vizro_geo_data["unit_name"] + "<br>" +
+        _vizro_geo_data["enterprise_address"].fillna("").str.strip() + "<br>" +
+        "资产总额: " + _vizro_geo_data["total_assets"].apply(lambda x: f"{x:,.0f}")
+    )
+
+    import plotly.graph_objects as go
+
+    @capture("graph")
+    def geo_map(data_frame=_vizro_geo_data):
+        data_frame = data_frame.copy()
+        # data_frame["size_scaled"] = np.log10(data_frame["total_assets"].clip(lower=1))
+        data_frame["size_scaled"] = data_frame["total_assets"]/10000
+        data_frame["hover_text"] = (
+            data_frame["unit_name"] + "<br>" +
+            data_frame["enterprise_address"].fillna("").str.strip() + "<br>" +
+            "资产总额: " + data_frame["total_assets"].apply(lambda x: f"{x:,.0f}")
+        )
+        fig = create_china_map_figure(provider="tianditu", tile_type="vec", zoom=8,
+                                       height=600, title="单位地理分布")
+        fig.add_trace(
+            go.Scattermap(
+                lat=data_frame["latitude"],
+                lon=data_frame["longitude"],
+                mode="markers",
+                marker=dict(
+                    size=data_frame["size_scaled"].clip(lower=3),
+                    color=np.log10(data_frame["total_assets"].clip(lower=1)),
+                    colorscale="Viridis",
+                    showscale=True,
+                    colorbar=dict(title="log10 资产"),
+                    sizemin=3, sizemode="area",
+                    opacity=0.7, symbol="circle",
+                ),
+                text=data_frame["hover_text"],
+                hoverinfo="text",
+            )
+        )
+        return fig
+
+    _vizro_geo_fig = geo_map(data_frame=_vizro_geo_data)
+
+_vizro_page_map = vm.Page(
+    id="china-map",
+    title="地理分布",
+    components=[
+        vm.Graph(figure=_vizro_geo_fig)
+    ],
+)
+
+_vizro_navigation = vm.Navigation(
+    pages={
+        "首页": ["penetration-monitor"],
+        "分析": ["relationship-analysis"],
+        "概览": ["overview"],
+        "地图": ["china-map"],
+    },
+    nav_selector=vm.NavBar(),
+)
+
+_vizro_dashboard = vm.Dashboard(
+    pages=[_vizro_page_monitor, _vizro_page_relationship, _vizro_page_overview, _vizro_page_map],
+    navigation=_vizro_navigation,
+)
 _vizro = Vizro(server=app, url_base_pathname='/vizro/')
 _vizro.build(_vizro_dashboard)
 

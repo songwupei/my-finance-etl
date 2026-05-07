@@ -2,7 +2,7 @@ data_source:
   base_path: "data/01_raw"
   month_folder_pattern: "{year}年{month}月财务快报数据"
   treasury_month_folder_pattern: "{year}年{month}月司库账户数据"
-  enable_finance: false
+  enable_finance: true
   enable_treasury: true
 
 database:

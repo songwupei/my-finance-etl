@@ -226,13 +226,12 @@ class PolarsExcelProcessor:
         df: pl.DataFrame,
         override: Optional[Dict] = None
     ) -> Optional[Dict]:
-        """解析基础信息工作表，返回字段字典"""
+        """解析基础信息工作表，返回字段字典。自动拆分 code | name 格式。"""
         result = {}
         field_mapping = (override or {}).get("field_mapping", {})
 
         try:
             if field_mapping and df.shape[1] >= 2:
-                # 使用field_mapping逻辑
                 for row in df.iter_rows(named=True):
                     field_cell = row.get(df.columns[0])
                     if field_cell is None:
@@ -242,16 +241,15 @@ class PolarsExcelProcessor:
                     if not field_str:
                         continue
 
-                    # 检查是否匹配field_mapping中的任何模式
                     for pattern, field_name in field_mapping.items():
                         if pattern in field_str:
-                            # 取同一行的第二列作为值
                             value_cell = row.get(df.columns[1]) if len(df.columns) > 1 else None
                             if value_cell is not None:
-                                result[field_name] = str(value_cell).strip()
+                                raw_value = str(value_cell).strip()
+                                result[field_name] = raw_value
+                                self._split_code_name(result, field_name, raw_value)
                             break
             else:
-                # 默认：A列是字段名，B列是值
                 for row in df.iter_rows(named=True):
                     if len(df.columns) >= 2:
                         key = row.get(df.columns[0])
@@ -264,6 +262,18 @@ class PolarsExcelProcessor:
         except Exception as e:
             logger.warning(f"解析基础信息工作表失败: {e}")
             return None
+
+    @staticmethod
+    def _split_code_name(result: dict, field_name: str, raw_value: str):
+        """检测 code | name 格式并拆分为 _code 和 _name 字段。"""
+        import re
+        m = re.match(r'^(\S+)\s*\|\s*(.+)$', raw_value)
+        if m:
+            code_part = m.group(1)
+            name_part = m.group(2).strip()
+            if re.match(r'^[0-9A-Za-z]+$', code_part):
+                result[f"{field_name}_code"] = code_part
+                result[f"{field_name}_name"] = name_part
 
     def _parse_report_sheet_polars(
         self,
@@ -428,36 +438,39 @@ def create_polars_pipeline_node(
     with open(config_file, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
 
-    # 修复2：简化文件获取逻辑，不依赖hooks
+    # 修复2：使用 finance_loader.yml 中的正则模式
     files = []
     try:
-        # 尝试从catalog获取文件列表
         if "excel_files" in catalog:
             files = catalog["excel_files"]
         else:
-            # 备选方案：从配置中获取基础路径
             base_path = Path(config.get("data_source", {}).get("base_path", "data/01_raw"))
             month_pattern = config.get("data_source", {}).get("month_folder_pattern", r"\d{4}年\d{1,2}月")
+            file_name_patterns = config.get("file_name_pattern", {}).get("patterns", [])
 
-            # 简单文件扫描
             import re
             if base_path.exists():
                 month_folders = [d for d in base_path.iterdir() if d.is_dir() and re.search(month_pattern, d.name)]
                 for month_folder in month_folders:
                     excel_files = list(month_folder.glob("*.xlsx")) + list(month_folder.glob("*.xls"))
                     for file_path in excel_files:
-                        # 解析文件名获取元数据
-                        match = re.search(r"(\d{18}[A-Za-z])-(\d)", file_path.stem)
-                        if match:
-                            code = match.group(1)
-                            suffix = match.group(2)
-                            files.append({
-                                "path": str(file_path),
-                                "code": code,
-                                "suffix": suffix,
-                                "month_folder": month_folder.name,
-                                "unit": file_path.stem.split("（")[0] if "（" in file_path.stem else file_path.stem
-                            })
+                        matched = False
+                        for pattern_cfg in file_name_patterns:
+                            regex = pattern_cfg.get("regex", "")
+                            m = re.match(regex, file_path.name)
+                            if m:
+                                metadata = m.groupdict()
+                                files.append({
+                                    "path": str(file_path),
+                                    "code": metadata.get("code", ""),
+                                    "suffix": metadata.get("suffix", ""),
+                                    "month_folder": month_folder.name,
+                                    "unit": metadata.get("unit", file_path.stem)
+                                })
+                                matched = True
+                                break
+                        if not matched:
+                            logger.debug(f"文件 {file_path.name} 不匹配任何模式，已跳过")
     except Exception as e:
         logger.warning(f"获取文件列表失败: {e}")
         return pd.DataFrame(), pd.DataFrame()

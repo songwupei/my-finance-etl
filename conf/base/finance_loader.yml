@@ -68,6 +68,9 @@ sheet_overrides:
       "上级企业代码": "parent_code"
       "报表类型": "reported_caliber_code"
       "编制日期": "report_date"
+      "国家和地区代码": "country_region_raw"
+      "所在地区(国资委)": "sasac_area_raw"
+      "企业所在地地址": "enterprise_address"
   "司库报表_主要财务指标快报表":
     is_report: true
     report_category: "快报综合"

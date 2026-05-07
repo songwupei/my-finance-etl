@@ -39,12 +39,11 @@ class FinanceExcelParser:
         return None
 
     def parse_base_info_sheet(self, df: pd.DataFrame, override: Optional[Dict] = None) -> Dict:
-        """解析基础信息工作表，返回字段字典"""
+        """解析基础信息工作表，返回字段字典。自动拆分 code | name 格式。"""
         result = {}
         field_mapping = (override or {}).get("field_mapping", {})
 
         if field_mapping:
-            # 使用field_mapping逻辑：在列0中查找模式，取列1的值
             for idx in range(len(df)):
                 if df.shape[1] < 2:
                     continue
@@ -57,22 +56,34 @@ class FinanceExcelParser:
                 if not field_str:
                     continue
 
-                # 检查是否匹配field_mapping中的任何模式
                 for pattern, field_name in field_mapping.items():
                     if pattern in field_str:
-                        # 取同一行的第二列作为值
                         value_cell = df.iloc[idx, 1] if df.shape[1] > 1 else None
                         if pd.notna(value_cell):
-                            result[field_name] = str(value_cell).strip()
-                        break  # 找到匹配后跳出
+                            raw_value = str(value_cell).strip()
+                            result[field_name] = raw_value
+                            # 自动拆分 code | name 格式
+                            self._split_code_name(result, field_name, raw_value)
+                        break
         else:
-            # 默认：A列是字段名，B列是值
             for _, row in df.iterrows():
                 if df.shape[1] >= 2 and pd.notna(row.iloc[0]) and pd.notna(row.iloc[1]):
                     key = str(row.iloc[0]).strip()
                     val = str(row.iloc[1]).strip()
                     result[key] = val
         return result
+
+    def _split_code_name(self, result: dict, field_name: str, raw_value: str):
+        """检测 code | name 格式并拆分为 _code 和 _name 字段。"""
+        import re
+        m = re.match(r'^(\S+)\s*\|\s*(.+)$', raw_value)
+        if m:
+            code_part = m.group(1)
+            name_part = m.group(2).strip()
+            # 只有第一部分像代码（数字/字母组成）才拆分
+            if re.match(r'^[0-9A-Za-z]+$', code_part):
+                result[f"{field_name}_code"] = code_part
+                result[f"{field_name}_name"] = name_part
 
     def parse_report_sheet(
         self,

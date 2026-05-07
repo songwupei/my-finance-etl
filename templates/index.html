@@ -19,10 +19,22 @@
 
         /* 左侧树面板 */
         .sidebar {
-            width: 340px; min-width: 240px;
+            width: var(--sidebar-width, 340px);
+            min-width: 240px; max-width: 70%;
             background: #fff;
             border-right: 1px solid #e8e8e8;
             display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        /* 分隔条 */
+        .divider {
+            width: 5px; min-width: 5px;
+            background: #ddd; cursor: col-resize;
+            transition: background 0.15s;
+            user-select: none;
+        }
+        .divider:hover, .divider.active {
+            background: #2c3e50;
         }
         .sidebar-header {
             padding: 16px; background: #2c3e50; color: white;
@@ -168,6 +180,8 @@
         </div>
     </div>
 
+    <!-- 可拖拽分隔条 -->
+    <div class="divider" id="divider"></div>
     <!-- 右侧：财务数据 -->
     <div class="main-content">
         <div class="report-card">
@@ -483,6 +497,49 @@ $(document).ready(function() {
                 btn.prop('disabled', false).text('生成日报');
             });
     });
+
+    // ========== 分隔条拖拽 ==========
+    (function() {
+        var divider = document.getElementById("divider");
+        var sidebar = document.getElementById("sidebar");
+        var container = document.querySelector(".app-container");
+        var isDragging = false;
+        var startX, startWidth;
+
+        divider.addEventListener("mousedown", function(e) {
+            isDragging = true;
+            startX = e.clientX;
+            startWidth = sidebar.getBoundingClientRect().width;
+            divider.classList.add("active");
+            document.body.style.cursor = "col-resize";
+            document.body.style.userSelect = "none";
+            e.preventDefault();
+        });
+
+        document.addEventListener("mousemove", function(e) {
+            if (!isDragging) return;
+            var dx = e.clientX - startX;
+            var newWidth = startWidth + dx;
+            // 最小 200px，最大 container 的 70%
+            var maxWidth = container.getBoundingClientRect().width * 0.7;
+            newWidth = Math.max(200, Math.min(newWidth, maxWidth));
+            sidebar.style.width = newWidth + "px";
+        });
+
+        document.addEventListener("mouseup", function() {
+            if (!isDragging) return;
+            isDragging = false;
+            divider.classList.remove("active");
+            document.body.style.cursor = "";
+            document.body.style.userSelect = "";
+            // 保存宽度到 localStorage
+            localStorage.setItem("sidebar-width", sidebar.style.width);
+        });
+
+        // 恢复保存的宽度
+        var savedWidth = localStorage.getItem("sidebar-width");
+        if (savedWidth) sidebar.style.width = savedWidth;
+    })();
 
     // ========== 启动 ==========
     loadTreePeriods();
