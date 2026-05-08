@@ -478,7 +478,7 @@ if _vizro_geo_data.shape[0] > 0:
             data_frame["enterprise_address"].fillna("").str.strip() + "<br>" +
             "资产总额: " + data_frame["total_assets"].apply(lambda x: f"{x:,.0f}")
         )
-        fig = create_china_map_figure(provider="tianditu", tile_type="vec", zoom=8,
+        fig = create_china_map_figure(provider="gaode", tile_type="vec", zoom=8,
                                        height=600, title="单位地理分布")
         fig.add_trace(
             go.Scattermap(

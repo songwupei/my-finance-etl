@@ -1,55 +1,89 @@
 # 集团财务数据标准化处理与可视化平台
 
-基于Kedro数据管道框架的财务数据ETL与可视化平台，支持动态Excel文件扫描、指标标准化处理、组织树构建与可视化展示。
+基于 Kedro 数据管道框架的财务数据 ETL 与可视化平台，支持动态 Excel 文件扫描、指标标准化处理、组织树构建、资金账户解析、地理编码与可视化展示。
+
+**版本**: 1.0
 
 ## 项目结构
 
 ```
-my_finance_etl/
-├── conf/                    # 配置文件目录
-│   ├── base/               # 基础配置
-│   │   ├── catalog.yml     # 数据目录配置
-│   │   ├── parameters.yml  # 全局参数
-│   │   ├── finance_loader.yml  # Excel解析配置
+skdata-etl/
+├── conf/                          # 配置文件
+│   ├── base/                      # 基础配置
+│   │   ├── catalog.yml            # Kedro 数据目录
+│   │   ├── parameters.yml         # 全局参数 (数据库路径等)
+│   │   ├── hooks.yml              # 钩子配置
+│   │   ├── finance_loader.yml     # Excel 解析规则
+│   │   ├── treasury_loader.yml    # 资金账户解析规则
 │   │   ├── indicator_mapping.yml  # 指标标准化配置
-│   │   └── standard_accounts.json # 标准科目库
-│   └── local/              # 本地配置
-│       └── credentials.yml # 数据库凭证
-├── src/my_finance_etl/     # 项目源码
-│   ├── hooks/              # Kedro钩子
-│   │   ├── __init__.py
-│   │   └── hooks.py        # 动态Excel加载钩子
-│   ├── pipelines/          # 数据管道
-│   │   ├── data_ingestion.py   # 数据提取管道
-│   │   ├── data_processing.py  # 数据处理管道
-│   │   └── data_warehouse.py   # 数据仓库管道
-│   ├── __init__.py         # 包初始化
-│   ├── __main__.py         # 入口点
-│   ├── parser.py           # Excel解析器
-│   ├── matcher.py          # 标准科目匹配器
-│   ├── tree_builder.py     # 组织树构建器
-│   └── pipeline_registry.py # 管道注册器
-├── data/                   # 数据目录
-│   ├── 01_raw/            # 原始Excel文件
-│   ├── 02_intermediate/   # 中间数据
-│   └── warehouse/         # 数据仓库文件
-├── templates/             # Flask模板
-│   └── index.html         # 前端界面
-├── flask_app.py           # Flask可视化服务
-├── settings.py            # 项目设置
-├── pyproject.toml         # 项目配置
-├── requirements.txt       # 依赖列表
-└── README.md              # 本文档
+│   │   ├── standard_accounts.json # 标准科目库 (v1.0)
+│   │   └── standard_accountsv1.0.json
+│   └── local/
+│       └── credentials.yml        # 数据库凭证
+├── src/my_finance_etl/            # 源码
+│   ├── hooks/
+│   │   └── hooks.py               # Kedro 钩子 (动态 Excel 加载)
+│   ├── pipelines/
+│   │   ├── data_ingestion.py      # 财务数据摄入 (Pandas)
+│   │   ├── data_ingestion_polars.py # 财务数据摄入 (Polars 优化)
+│   │   ├── data_processing.py     # 指标标准化处理
+│   │   ├── data_warehouse.py      # 财务数据仓库构建
+│   │   ├── treasury_ingestion.py  # 资金数据摄入
+│   │   ├── treasury_processing.py # 资金数据处理
+│   │   └── treasury_warehouse.py  # 资金数据仓库构建
+│   ├── nodes/                     # Kedro 节点
+│   ├── io/                        # 自定义 I/O
+│   ├── utils/                     # 工具函数
+│   ├── parser.py                  # Excel 财务快报解析器
+│   ├── treasury_parser.py         # 资金账户 Excel 解析器
+│   ├── matcher.py                 # 标准科目匹配器
+│   ├── tree_builder.py            # 组织树构建器
+│   ├── duckdb_data_warehouse.py   # DuckDB 星型模型构建
+│   ├── polars_optimizer.py        # Polars 并行优化
+│   ├── geocoder.py                # 高德地图地理编码
+│   ├── pipeline_registry.py       # 管道注册
+│   └── settings.py                # 项目设置
+├── scripts/
+│   └── geocode_units.py           # 批量地理编码脚本
+├── doc/
+│   ├── finance_warehouse_schema.md # 数据仓库 Schema 文档
+│   └── 指标对比键匹配规则.md       # 指标匹配算法说明
+├── data/
+│   ├── 01_raw/                    # 原始 Excel 文件
+│   ├── 02_intermediate/           # 中间数据
+│   └── warehouse/                 # DuckDB 数据仓库
+├── templates/
+│   └── index.html                 # Flask 前端界面
+├── generated_reports/             # 生成的报告文件
+├── flask_app.py                   # Flask 可视化服务 (含 Vizro 仪表板)
+├── pyproject.toml                 # 项目配置
+└── README.md                      # 本文档
 ```
 
 ## 功能特性
 
-1. **动态Excel加载**: 自动扫描月度文件夹，根据正则表达式提取元数据
-2. **智能解析**: 自动识别基本信息和报表工作表，解析指标层级关系
-3. **指标标准化**: 基于标准科目库匹配，支持上下文消歧
-4. **组织树构建**: 自动构建集团组织树结构
-5. **星型数据模型**: 生成维度表和事实表，存储在DuckDB
-6. **可视化展示**: Flask + jsTree提供交互式组织树查看界面
+### ETL 管道
+
+1. **动态 Excel 加载**: 自动扫描月度文件夹，根据正则表达式提取元数据
+2. **智能解析**: 自动识别基本信息工作表和报表工作表，支持章节命名空间隔离
+3. **指标标准化**: 基于标准科目库的顶层科目名称匹配，支持上下文消歧
+4. **组织树构建**: 自动构建集团多层级组织架构树 (2830 个节点)
+5. **资金账户解析**: 解析银行账户信息，构建资金账户维度表 (27085 个账户)
+6. **星型数据模型**: 生成维度表和事实表，存储在 DuckDB (`finance_warehouse.duckdb`)
+7. **Polars 加速**: 针对 1500+ Excel 文件的并行处理优化
+
+### 可视化服务
+
+8. **组织树浏览**: Flask + jsTree 交互式组织树，点击节点查看财务指标详情
+9. **财务数据查询**: 支持资产负债表/利润表/现金流量表的月度/累计/同比数据
+10. **资金账户查询**: 按单位查看银行账户余额、类型、合作银行等
+11. **指标对比**: 标准科目 vs 原始报表指标的自动匹配验证
+12. **Vizro 仪表板**: 穿透监控大屏 (散点图 + 直方图)、中国地图单位分布
+13. **日报生成**: 基于 Quarto 模板的自动报告生成
+
+### 地理编码
+
+14. **单位地理定位**: 通过高德地图 API 将企业地址转换为经纬度坐标
 
 ## 快速开始
 
@@ -61,7 +95,8 @@ pip install -r requirements.txt
 
 ### 2. 配置数据源
 
-将集团月度财务Excel文件按以下结构放置：
+将集团月度财务 Excel 文件按以下结构放置：
+
 ```
 data/01_raw/
 ├── 2024年1月/
@@ -78,87 +113,138 @@ data/01_raw/
 
 编辑配置文件：
 - `conf/base/parameters.yml`: 设置集团根代码等参数
-- `conf/base/finance_loader.yml`: 调整Excel解析规则
-- `conf/base/indicator_mapping.yml`: 配置标准科目映射
+- `conf/base/finance_loader.yml`: 调整 Excel 解析规则
+- `conf/base/indicator_mapping.yml`: 配置标准科目映射规则
 - `conf/base/standard_accounts.json`: 维护标准科目库
 
-### 4. 运行ETL管道
+### 4. 运行 ETL 管道
 
 ```bash
+# 运行完整管道 (财务报表 + 资金账户)
 python -m src.my_finance_etl
-# 或
-kedro run
+
+# 仅财务报表
+kedro run --pipeline finance_report
+
+# 仅资金账户数据
+kedro run --pipeline treasury_data
+
+# Polars 优化模式
+kedro run --pipeline ingest_polars
 ```
 
-### 5. 启动可视化服务
+### 5. 地理编码 (可选)
+
+```bash
+python scripts/geocode_units.py
+```
+
+### 6. 启动可视化服务
 
 ```bash
 python flask_app.py
 ```
 
-访问 http://localhost:5000 查看集团组织树和财务指标详情。
+访问:
+- 组织树界面: http://localhost:5001
+- Vizro 仪表板: http://localhost:5001/vizro/
 
-## 配置说明
+## 数据模型
 
-### Excel解析配置 (finance_loader.yml)
+详见 [`doc/finance_warehouse_schema.md`](doc/finance_warehouse_schema.md)。
 
+### 维度表
+
+| 表名 | 说明 | 行数 |
+|---|---|---|
+| `dim_period` | 会计期间 | 2 |
+| `dim_caliber` | 口径 | 1 |
+| `dim_report_category` | 报表类别 (资产负债表/利润表/现金流量表) | 3 |
+| `dim_standard_account` | 标准科目树 (含层级路径) | 124 |
+| `dim_unit_report` | 报送单位 | 2830 |
+| `dim_organization_tree` | 组织架构树 | 2830 |
+| `dim_treasury_account` | 资金账户 | 27085 |
+| `dim_treasury_account_type` | 账户类型 | 34 |
+| `dim_unit_geo` | 单位地理坐标 | — |
+
+### 事实表
+
+| 表名 | 说明 | 行数 |
+|---|---|---|
+| `fact_finance_data` | 财务快报数据 (本月/累计/同比) | 1,234,917 |
+| `fact_treasury_account_balance` | 资金账户余额 | 10,533 |
+
+### 视图
+
+| 视图 | 说明 |
+|---|---|
+| `v_monthly_summary` | 按月-单位-报表类别的汇总 |
+| `v_organization_hierarchy` | 组织架构递归展开 (含层级深度) |
+
+## 技术栈
+
+| 组件 | 技术 |
+|---|---|
+| ETL 框架 | Kedro ≥ 0.19.0 |
+| 数据处理 | Pandas, Polars |
+| 数据仓库 | DuckDB |
+| 可视化 | Flask, jsTree, Vizro, Plotly |
+| 报告生成 | Quarto |
+| 地理编码 | 高德地图 API |
+| 包管理 | setuptools + pyproject.toml |
+
+## 开发指南
+
+### 管道列表
+
+```bash
+kedro registry list    # 查看所有已注册管道
+```
+
+| 管道名 | 说明 |
+|---|---|
+| `__default__` | 完整管道 (财务 + 资金) |
+| `ingest` | 财务数据摄入 (Pandas) |
+| `ingest_polars` | 财务数据摄入 (Polars 优化) |
+| `process` | 指标标准化处理 |
+| `warehouse` | 财务数据仓库构建 |
+| `finance_report` | 财务快报完整链路 (Polars 摄入 → 处理 → 入库) |
+| `treasury_data` | 资金数据完整链路 |
+
+### 配置说明
+
+**Excel 解析配置** (`finance_loader.yml`):
 - `file_pattern`: 文件命名正则表达式
 - `sheet_type_rules`: 工作表识别规则
 - `numbering_rules`: 指标编号解析规则
 - `default_parsing_rules`: 默认解析规则
 
-### 指标标准化配置 (indicator_mapping.yml)
-
+**指标标准化配置** (`indicator_mapping.yml`):
 - `standard_account_library`: 标准科目库引用路径
 - `context_disambiguation`: 上下文消歧规则
 - `hierarchical_matching`: 层级匹配规则
 
-### 数据目录配置 (catalog.yml)
-
-定义Kedro数据集，包括：
+**数据目录配置** (`catalog.yml`):
 - 中间数据: `parsed_excel.*`, `normalized_indicators.*`
-- 维度表: `dim_period`, `dim_organization_unit`, `dim_standard_account`, `dim_organization_tree`
+- 维度表: `dim_period`, `dim_unit_report`, `dim_standard_account`, `dim_organization_tree`
 - 事实表: `fact_finance_data`
-
-## 数据模型
-
-### 维度表
-
-1. **dim_period**: 期间维度表
-2. **dim_organization_unit**: 组织单元维度表  
-3. **dim_standard_account**: 标准科目维度表
-4. **dim_organization_tree**: 组织树维度表
-
-### 事实表
-
-**fact_finance_data**: 财务事实数据表
-
-## 开发指南
 
 ### 扩展功能
 
-1. **添加新的数据源**: 在`src/my_finance_etl/parser.py`中扩展`FinanceExcelParser`类
-2. **添加新的指标类型**: 在`src/my_finance_etl/matcher.py`中扩展`StandardAccountMatcher`类
-3. **修改可视化界面**: 编辑`templates/index.html`和`flask_app.py`
-
-### 测试数据管道
-
-```bash
-kedro test
-```
-
-### 调试钩子
-
-动态Excel加载钩子日志位于`logs/my_finance_etl.log`
+- **添加新的数据源**: 在 `parser.py` 中扩展 `FinanceExcelParser` 类
+- **添加新的指标类型**: 在 `matcher.py` 中扩展 `StandardAccountMatcher` 类
+- **修改可视化界面**: 编辑 `templates/index.html` 和 `flask_app.py`
+- **添加新的 Vizro 页面**: 在 `flask_app.py` 中添加 `vm.Page`
 
 ## 故障排除
 
 ### 常见问题
 
-1. **Kedro运行时缺少kedro_init_version错误**: 在`pyproject.toml`中添加`kedro_init_version = "0.19.0"`
-2. **Excel文件无法解析**: 检查文件格式和命名规则，参考`finance_loader.yml`配置
-3. **标准科目匹配失败**: 验证`standard_accounts.json`格式和`indicator_mapping.yml`配置
-4. **可视化服务无法连接数据库**: 检查DuckDB文件路径和权限
+1. **Kedro 运行时缺少 `kedro_init_version` 错误**: 已在 `pyproject.toml` 中配置 `kedro_init_version = "1.1.1"`
+2. **Excel 文件无法解析**: 检查文件格式和命名规则，参考 `finance_loader.yml` 配置
+3. **标准科目匹配失败**: 验证 `standard_accounts.json` 格式和 `indicator_mapping.yml` 配置
+4. **可视化服务无法连接数据库**: 检查 DuckDB 文件路径和权限
+5. **Polars 优化不可用**: 系统自动回退到 Pandas 实现，检查 `data_ingestion_polars.py` 日志
 
 ### 日志查看
 

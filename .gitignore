@@ -1,3 +1,25 @@
 # Data files
 data/*
 !data/.gitkeep
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE / tooling
+.omc/
+.idea/
+.vscode/
+
+# Generated outputs
+generated_reports/
+logs/
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+
+# Misc
+standards/
