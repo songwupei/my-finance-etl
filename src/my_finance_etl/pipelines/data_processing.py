@@ -1,7 +1,7 @@
 """Data processing pipeline for standardization and matching."""
 import os
 import sys
-import pandas as pd
+import polars as pl
 import yaml
 from kedro.pipeline import Pipeline, node
 
@@ -15,12 +15,12 @@ if _AREACODE_PATH not in sys.path:
 
 
 def standardize_report_data(
-    parsed_report_data: pd.DataFrame,
+    parsed_report_data: pl.DataFrame,
     parameters: dict,
-) -> pd.DataFrame:
+) -> pl.DataFrame:
     """Standardize report data using standard account matcher."""
-    if parsed_report_data.empty:
-        return pd.DataFrame()
+    if parsed_report_data.is_empty():
+        return pl.DataFrame()
 
     # Load configuration
     indicator_mapping_path = parameters.get("indicator_mapping_path", "conf/base/indicator_mapping.yml")
@@ -42,8 +42,8 @@ def standardize_report_data(
 
     # Process each row
     records = []
-    for _, row in parsed_report_data.iterrows():
-        row_dict = row.to_dict()
+    for row in parsed_report_data.iter_rows(named=True):
+        row_dict = row  # row is already a dict with named=True
         matched_account = matcher.match(row_dict)
 
         record = {
@@ -85,12 +85,12 @@ def standardize_report_data(
 
         records.append(record)
 
-    return pd.DataFrame(records)
+    return pl.DataFrame(records)
 
 
 def build_dimension_tables(
-    parsed_base_info: pd.DataFrame,
-    processed_report_data: pd.DataFrame,
+    parsed_base_info: pl.DataFrame,
+    processed_report_data: pl.DataFrame,
     parameters: dict,
 ) -> dict:
     """Build dimension tables from parsed and processed data."""
@@ -103,11 +103,11 @@ def build_dimension_tables(
     def _get(row, key, default=None):
         if key in parsed_base_info.columns:
             val = row.get(key)
-            return val if pd.notna(val) else default
+            return val if val is not None else default
         return default
 
     dim_unit_report_records = []
-    for _, row in parsed_base_info.iterrows():
+    for row in parsed_base_info.iter_rows(named=True):
         unit_name = _get(row, "unit_name")
         if not unit_name:
             continue
@@ -143,10 +143,10 @@ def build_dimension_tables(
         }
         dim_unit_report_records.append(record)
 
-    dim_unit_report = pd.DataFrame(dim_unit_report_records)
+    dim_unit_report = pl.DataFrame(dim_unit_report_records)
 
     # dim_caliber ... (rest unchanged)
-    dim_caliber = pd.DataFrame([{
+    dim_caliber = pl.DataFrame([{
         "caliber_id": "1",
         "caliber_name": "合并口径",
         "description": "包含所有子公司的合并数据",
@@ -156,15 +156,15 @@ def build_dimension_tables(
     # Defensive check: ensure report_category column exists
     if "report_category" not in processed_report_data.columns:
         # Create column with default value "unknown"
-        processed_report_data["report_category"] = "unknown"
+        processed_report_data = processed_report_data.with_columns(pl.lit("unknown").alias("report_category"))
 
-    unique_categories = processed_report_data["report_category"].unique()
+    unique_categories = processed_report_data["report_category"].unique().to_list()
     category_records = [
         {
             "category_id": str(i + 1),
             "category_name": cat,
         }
-        for i, cat in enumerate(unique_categories) if pd.notna(cat)
+        for i, cat in enumerate(unique_categories) if cat is not None
     ]
 
     # Ensure at least one record to avoid empty DataFrame
@@ -174,18 +174,18 @@ def build_dimension_tables(
             "category_name": "unknown",
         }]
 
-    dim_report_category = pd.DataFrame(category_records)
+    dim_report_category = pl.DataFrame(category_records)
 
     # dim_period
     # Defensive check: ensure period column exists
     if "period" not in processed_report_data.columns:
         # Create empty period column if missing
-        processed_report_data["period"] = None
+        processed_report_data = processed_report_data.with_columns(pl.lit(None).alias("period"))
 
-    unique_periods = processed_report_data["period"].unique()
+    unique_periods = processed_report_data["period"].unique().to_list()
     dim_period_records = []
     for period in unique_periods:
-        if pd.notna(period) and period:
+        if period is not None and period:
             try:
                 year, month, _ = period.split("-")
                 period_name = f"{year}年{int(month):02d}月"
@@ -207,7 +207,7 @@ def build_dimension_tables(
             "month": 1,
         }]
 
-    dim_period = pd.DataFrame(dim_period_records)
+    dim_period = pl.DataFrame(dim_period_records)
 
     # dim_standard_account (from standard accounts JSON)
     import json
@@ -244,7 +244,7 @@ def build_dimension_tables(
             }
             dim_standard_account_records.append(record)
 
-    dim_standard_account = pd.DataFrame(dim_standard_account_records)
+    dim_standard_account = pl.DataFrame(dim_standard_account_records)
 
     return (
         dim_unit_report,

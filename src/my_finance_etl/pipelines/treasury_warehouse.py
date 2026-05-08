@@ -1,13 +1,13 @@
 """司库数据入库 Pipeline — 加载司库维度表和事实表到 DuckDB。"""
 import logging
-import pandas as pd
+import polars as pl
 from kedro.pipeline import Pipeline, node
 
 
 def load_treasury_to_warehouse(
-    dim_treasury_account: pd.DataFrame,
-    dim_treasury_account_type: pd.DataFrame,
-    fact_treasury_account_balance: pd.DataFrame,
+    dim_treasury_account: pl.DataFrame,
+    dim_treasury_account_type: pl.DataFrame,
+    fact_treasury_account_balance: pl.DataFrame,
     parameters: dict = None,
 ) -> tuple:
     """将司库表加载到 DuckDB 数据仓库。"""

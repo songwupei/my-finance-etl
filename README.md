@@ -43,8 +43,7 @@ skdata-etl/
 │   ├── geocoder.py                # 高德地图地理编码
 │   ├── pipeline_registry.py       # 管道注册
 │   └── settings.py                # 项目设置
-├── scripts/
-│   └── geocode_units.py           # 批量地理编码脚本
+├── scripts/                      # (geocode_units.py 已删除，统一用 geocoder.py)
 ├── doc/
 │   ├── finance_warehouse_schema.md # 数据仓库 Schema 文档
 │   └── 指标对比键匹配规则.md       # 指标匹配算法说明

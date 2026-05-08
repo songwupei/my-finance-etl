@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1778037095162,
+  "lastScanned": 1778145617710,
   "projectRoot": "/home/song/NutstoreFiles/5-Quartools/app_py/skdata-etl",
   "techStack": {
     "languages": [
@@ -53,7 +53,7 @@
       "path": "__pycache__",
       "purpose": null,
       "fileCount": 3,
-      "lastAccessed": 1778037095132,
+      "lastAccessed": 1778145617687,
       "keyFiles": [
         "flask_app.cpython-313.pyc",
         "settings.cpython-313.pyc",
@@ -64,65 +64,368 @@
       "path": "conf",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1778037095142,
+      "lastAccessed": 1778145617688,
       "keyFiles": []
     },
     "data": {
       "path": "data",
       "purpose": "Data files",
       "fileCount": 1,
-      "lastAccessed": 1778037095146,
+      "lastAccessed": 1778145617691,
       "keyFiles": []
     },
     "doc": {
       "path": "doc",
       "purpose": null,
-      "fileCount": 2,
-      "lastAccessed": 1778037095147,
+      "fileCount": 4,
+      "lastAccessed": 1778145617699,
       "keyFiles": [
         "finance_warehouse_schema.md",
-        "指标对比键匹配规则.md"
+        "units_without_coordinates.csv",
+        "指标对比键匹配规则.md",
+        "数据报送标准规范2.0.xlsx"
+      ]
+    },
+    "generated_reports": {
+      "path": "generated_reports",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1778145617700,
+      "keyFiles": [
+        "daily_report_1778047232.docx",
+        "daily_report_1778047232.pdf"
       ]
     },
     "logs": {
       "path": "logs",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1778037095148,
+      "lastAccessed": 1778145617701,
       "keyFiles": []
     },
     "scripts": {
       "path": "scripts",
       "purpose": "Build/utility scripts",
-      "fileCount": 0,
-      "lastAccessed": 1778037095152,
-      "keyFiles": []
+      "fileCount": 1,
+      "lastAccessed": 1778145617702,
+      "keyFiles": [
+        "geocode_units.py"
+      ]
     },
     "src": {
       "path": "src",
       "purpose": "Source code",
       "fileCount": 0,
-      "lastAccessed": 1778037095152,
+      "lastAccessed": 1778145617703,
       "keyFiles": []
     },
     "static": {
       "path": "static",
       "purpose": "Static files",
       "fileCount": 0,
-      "lastAccessed": 1778037095153,
+      "lastAccessed": 1778145617703,
       "keyFiles": []
     },
     "templates": {
       "path": "templates",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1778037095154,
+      "lastAccessed": 1778145617704,
       "keyFiles": [
         "index.html",
         "index_1.html_bk"
       ]
     }
   },
-  "hotPaths": [],
+  "hotPaths": [
+    {
+      "path": "src/my_finance_etl/polars_optimizer.py",
+      "accessCount": 64,
+      "lastAccessed": 1778223726392,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/pipelines/data_processing.py",
+      "accessCount": 21,
+      "lastAccessed": 1778222602193,
+      "type": "file"
+    },
+    {
+      "path": "flask_app.py",
+      "accessCount": 21,
+      "lastAccessed": 1778231267369,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/pipelines/data_warehouse.py",
+      "accessCount": 18,
+      "lastAccessed": 1778221609257,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/hooks/hooks.py",
+      "accessCount": 17,
+      "lastAccessed": 1778224988614,
+      "type": "file"
+    },
+    {
+      "path": "standards/finance_treasury_standard.yaml",
+      "accessCount": 12,
+      "lastAccessed": 1778210333021,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/geocoder.py",
+      "accessCount": 12,
+      "lastAccessed": 1778228614446,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/duckdb_data_warehouse.py",
+      "accessCount": 11,
+      "lastAccessed": 1778205886784,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/pipelines/treasury_ingestion.py",
+      "accessCount": 8,
+      "lastAccessed": 1778211100239,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/pipeline_registry.py",
+      "accessCount": 8,
+      "lastAccessed": 1778221538568,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/pipelines/treasury_processing.py",
+      "accessCount": 7,
+      "lastAccessed": 1778221010892,
+      "type": "file"
+    },
+    {
+      "path": "conf/base/parameters.yml",
+      "accessCount": 7,
+      "lastAccessed": 1778228877485,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/pipelines/treasury_warehouse.py",
+      "accessCount": 6,
+      "lastAccessed": 1778206077789,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/pipelines/data_ingestion_polars.py",
+      "accessCount": 6,
+      "lastAccessed": 1778221539972,
+      "type": "file"
+    },
+    {
+      "path": "scripts/geocode_units.py",
+      "accessCount": 6,
+      "lastAccessed": 1778225636360,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/matcher.py",
+      "accessCount": 6,
+      "lastAccessed": 1778229728220,
+      "type": "file"
+    },
+    {
+      "path": "conf/base/standard_accounts.json",
+      "accessCount": 5,
+      "lastAccessed": 1778203281185,
+      "type": "file"
+    },
+    {
+      "path": "conf/base/catalog.yml",
+      "accessCount": 5,
+      "lastAccessed": 1778205615771,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/treasury_parser.py",
+      "accessCount": 5,
+      "lastAccessed": 1778205978948,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/parser.py",
+      "accessCount": 4,
+      "lastAccessed": 1778203346671,
+      "type": "file"
+    },
+    {
+      "path": "conf/base/finance_loader.yml",
+      "accessCount": 4,
+      "lastAccessed": 1778210272070,
+      "type": "file"
+    },
+    {
+      "path": "doc/finance_warehouse_schema.md",
+      "accessCount": 4,
+      "lastAccessed": 1778225808923,
+      "type": "file"
+    },
+    {
+      "path": "conf/base/hooks.yml",
+      "accessCount": 4,
+      "lastAccessed": 1778225809738,
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 4,
+      "lastAccessed": 1778225836660,
+      "type": "file"
+    },
+    {
+      "path": "doc/指标对比键匹配规则.md",
+      "accessCount": 3,
+      "lastAccessed": 1778202387175,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/io/__init__.py",
+      "accessCount": 3,
+      "lastAccessed": 1778205238979,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/schema_registry.py",
+      "accessCount": 3,
+      "lastAccessed": 1778206662658,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/io/polars_excel_dataset.py",
+      "accessCount": 3,
+      "lastAccessed": 1778207445819,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/io/polars_parquet_dataset.py",
+      "accessCount": 3,
+      "lastAccessed": 1778219407697,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/pipelines/__init__.py",
+      "accessCount": 3,
+      "lastAccessed": 1778221539297,
+      "type": "file"
+    },
+    {
+      "path": "conf/base/indicator_mapping.yml",
+      "accessCount": 3,
+      "lastAccessed": 1778222566825,
+      "type": "file"
+    },
+    {
+      "path": "templates/index.html",
+      "accessCount": 2,
+      "lastAccessed": 1778201730440,
+      "type": "file"
+    },
+    {
+      "path": "AGENTS.md",
+      "accessCount": 2,
+      "lastAccessed": 1778202121705,
+      "type": "file"
+    },
+    {
+      "path": "standards/treasury_data.yaml",
+      "accessCount": 2,
+      "lastAccessed": 1778204893811,
+      "type": "file"
+    },
+    {
+      "path": "requirements.txt",
+      "accessCount": 1,
+      "lastAccessed": 1778201619383,
+      "type": "file"
+    },
+    {
+      "path": "kedro.yml",
+      "accessCount": 1,
+      "lastAccessed": 1778201619542,
+      "type": "file"
+    },
+    {
+      "path": "pyproject.toml",
+      "accessCount": 1,
+      "lastAccessed": 1778201619602,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/__init__.py",
+      "accessCount": 1,
+      "lastAccessed": 1778201643564,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/settings.py",
+      "accessCount": 1,
+      "lastAccessed": 1778201643668,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/__main__.py",
+      "accessCount": 1,
+      "lastAccessed": 1778201643853,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_etl/hooks/__init__.py",
+      "accessCount": 1,
+      "lastAccessed": 1778201672499,
+      "type": "file"
+    },
+    {
+      "path": "conf/base/treasury_loader.yml",
+      "accessCount": 1,
+      "lastAccessed": 1778201690177,
+      "type": "file"
+    },
+    {
+      "path": "conf/local/credentials.yml",
+      "accessCount": 1,
+      "lastAccessed": 1778201690476,
+      "type": "file"
+    },
+    {
+      "path": "conf/local/parameters.yml",
+      "accessCount": 1,
+      "lastAccessed": 1778201690535,
+      "type": "file"
+    },
+    {
+      "path": "doc/ddl.sql.md",
+      "accessCount": 1,
+      "lastAccessed": 1778201713586,
+      "type": "file"
+    },
+    {
+      "path": "query_treasury_account.py",
+      "accessCount": 1,
+      "lastAccessed": 1778201713790,
+      "type": "file"
+    },
+    {
+      "path": "standards/treasury_ddl.sql",
+      "accessCount": 1,
+      "lastAccessed": 1778202746027,
+      "type": "file"
+    },
+    {
+      "path": "standards/finance_ddl.sql",
+      "accessCount": 1,
+      "lastAccessed": 1778206599390,
+      "type": "file"
+    }
+  ],
   "userDirectives": []
 }

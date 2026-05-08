@@ -1,94 +1,76 @@
 """司库数据处理 Pipeline — 构建维度表和事实表（含 entity_report_id 匹配）。"""
 import hashlib
 import logging
-import pandas as pd
+import polars as pl
 from pathlib import Path
 from kedro.pipeline import Pipeline, node
 from kedro.config import OmegaConfigLoader
 from kedro.framework.project import settings
 
 
-def resolve_entity_id(org_code: str, dim_org_tree: pd.DataFrame, unit_code_mapping: dict) -> str:
-    """根据统一社会信用代码匹配 entity_report_id。
-
-    规则：
-    1. 在 dim_organization_tree 中查找 unit_code == org_code
-    2. 排除 suffix 1（差额表）和 9（合并表）
-    3. 优先取 suffix=0，否则取第一个剩余 suffix
-    4. 未匹配则查手工映射表
-    """
-    if not org_code or pd.isna(org_code):
-        return None
-
-    matched = dim_org_tree[dim_org_tree["unit_code"] == str(org_code).strip()]
-    if matched.empty:
-        return unit_code_mapping.get(str(org_code).strip())
-
-    suffixes = matched["suffix"].unique().tolist()
-    valid = [s for s in suffixes if s not in ("1", "9")]
-
-    if not valid:
-        # 只有 1 和 9，取 suffix 9（合并口径）
-        target = "9" if "9" in suffixes else suffixes[0]
-    elif len(valid) == 1:
-        target = valid[0]
-    elif "0" in valid:
-        target = "0"
-    else:
-        target = valid[0]
-
-    row = matched[matched["suffix"] == target].iloc[0]
-    return row["entity_report_id"]
+def _build_entity_lookup(dim_org_tree: pl.DataFrame, manual_map: dict) -> dict:
+    """预建 org_code → entity_report_id 查找表（避免逐行 filter）。"""
+    lookup = dict(manual_map)
+    for row in dim_org_tree.iter_rows(named=True):
+        code = row.get("unit_code")
+        if not code or code in lookup:
+            continue
+        suffix = row.get("suffix", "")
+        # 优先 suffix=0 > 其他(排除1,9) > 9
+        if suffix not in ("1", "9"):
+            if suffix == "0" or code not in lookup:
+                lookup[code] = row["entity_report_id"]
+        elif suffix == "9" and code not in lookup:
+            lookup[code] = row["entity_report_id"]
+    return lookup
 
 
 def build_account_dimensions_and_fact(
-    parsed_treasury_account_info: pd.DataFrame,
-    parsed_treasury_account_balance: pd.DataFrame,
-    dim_organization_tree: pd.DataFrame,
+    parsed_treasury_account_info: pl.DataFrame,
+    parsed_treasury_account_balance: pl.DataFrame,
+    dim_organization_tree: pl.DataFrame,
     parameters: dict,
 ):
-    """构建账户维度表和余额事实表。
-
-    Returns:
-        dim_treasury_account, dim_treasury_account_type, fact_treasury_account_balance
-    """
+    """构建账户维度表和余额事实表 — 向量化版本，无逐行 filter。"""
     logger = logging.getLogger(__name__)
 
-    if parsed_treasury_account_info.empty:
-        logger.warning("No treasury account info data, returning empty DataFrames")
-        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+    if parsed_treasury_account_info.is_empty():
+        logger.warning("No treasury account info data")
+        return pl.DataFrame(), pl.DataFrame(), pl.DataFrame()
 
-    # 加载手工映射表
+    # 手工映射表
     config_loader = OmegaConfigLoader(conf_source=settings.CONF_SOURCE)
     try:
         treasury_config = config_loader["treasury_loader"]
     except Exception:
         treasury_config = {}
-    unit_code_mapping = treasury_config.get("unit_code_mapping", {})
+    manual_map = treasury_config.get("unit_code_mapping", {})
 
-    # --- entity_report_id 匹配 ---
+    # --- entity_report_id: 预建 lookup → replace 批量匹配 ---
     logger.info("Resolving entity_report_id for treasury accounts...")
-    account_info = parsed_treasury_account_info.copy()
-    account_info["entity_report_id"] = account_info["org_code"].apply(
-        lambda code: resolve_entity_id(code, dim_organization_tree, unit_code_mapping)
+    lookup = _build_entity_lookup(dim_organization_tree, manual_map)
+    account_info = parsed_treasury_account_info.with_columns(
+        pl.col("org_code").replace(lookup, default=None).alias("entity_report_id")
     )
-    matched_count = account_info["entity_report_id"].notna().sum()
+    matched_count = account_info["entity_report_id"].is_not_null().sum()
     logger.info(f"Entity ID matched: {matched_count}/{len(account_info)}")
 
-    # --- dim_treasury_account_type ---
-    account_types = account_info[["account_nature", "account_type"]].drop_duplicates()
-    account_types = account_types.dropna(subset=["account_nature"]).copy()
-    account_types["type_id"] = account_types.apply(
-        lambda r: hashlib.md5(
-            f"{r['account_nature']}|{r.get('account_type','')}".encode()
-        ).hexdigest()[:8],
-        axis=1,
+    # --- dim_treasury_account_type: MD5 via map_elements (34 rows, trivial) ---
+    account_types = account_info.select(["account_nature", "account_type"]).unique()
+    account_types = account_types.drop_nulls(subset=["account_nature"])
+    account_types = account_types.with_columns(
+        pl.struct(["account_nature", "account_type"]).map_elements(
+            lambda s: hashlib.md5(
+                f"{s['account_nature']}|{s.get('account_type','')}".encode()
+            ).hexdigest()[:8],
+            return_dtype=pl.String,
+        ).alias("type_id")
     )
-    dim_account_type = account_types.rename(columns={
+    dim_account_type = account_types.rename({
         "account_nature": "type_label",
         "account_type": "category_label",
-    })[["type_id", "type_label", "category_label"]]
-    dim_account_type = dim_account_type.drop_duplicates(subset=["type_label"])
+    }).select(["type_id", "type_label", "category_label"])
+    dim_account_type = dim_account_type.unique(subset=["type_label"])
 
     # --- dim_treasury_account ---
     dim_account_cols = [
@@ -103,55 +85,60 @@ def build_account_dimensions_and_fact(
         "sub_group_name", "source_file", "period",
     ]
     available_cols = [c for c in dim_account_cols if c in account_info.columns]
-    dim_account = account_info[available_cols].copy()
-    dim_account = dim_account.drop_duplicates(subset=["account_number", "org_code"])
-    dim_account["account_id"] = dim_account.apply(
-        lambda r: hashlib.md5(
-            f"{r['account_number']}|{r.get('org_code','')}".encode()
-        ).hexdigest()[:12],
-        axis=1,
+    dim_account = account_info.select(available_cols)
+    dim_account = dim_account.unique(subset=["account_number", "org_code"])
+    dim_account = dim_account.with_columns(
+        pl.struct(["account_number", "org_code"]).map_elements(
+            lambda s: hashlib.md5(
+                f"{s['account_number']}|{s.get('org_code','')}".encode()
+            ).hexdigest()[:12],
+            return_dtype=pl.String,
+        ).alias("account_id")
     )
-    dim_account = dim_account.merge(
-        dim_account_type[["type_label", "type_id"]],
+    dim_account = dim_account.join(
+        dim_account_type.select(["type_label", "type_id"]),
         left_on="account_nature", right_on="type_label", how="left",
     )
 
     # --- fact_treasury_account_balance ---
-    if parsed_treasury_account_balance.empty:
+    if parsed_treasury_account_balance.is_empty():
         logger.warning("No treasury account balance data")
-        return dim_account, dim_account_type, pd.DataFrame()
+        return dim_account, dim_account_type, pl.DataFrame()
 
-    # join 余额表 with account info (通过 银行账号) 获取 org_code 和 entity_report_id
-    balance = parsed_treasury_account_balance.copy()
-    account_lookup = account_info[["account_number", "org_code", "unit_name",
-                                   "entity_report_id"]].drop_duplicates(subset="account_number")
-    fact = balance.merge(account_lookup, on="account_number", how="left", suffixes=("_bal", "_info"))
+    account_lookup = account_info.select(
+        ["account_number", "org_code", "entity_report_id"]
+    ).unique(subset="account_number")
+    acc_id_lookup = dim_account.select(["account_number", "account_id"]).unique(subset="account_number")
 
-    if "entity_report_id" not in fact.columns:
-        fact["entity_report_id"] = None
+    fact_cols_balance = ["account_number", "balance", "converted_amount",
+                         "currency", "balance_date", "is_partner_bank",
+                         "is_overseas", "period"]
+    fact_cols = [c for c in fact_cols_balance if c in parsed_treasury_account_balance.columns]
+    fact_df = parsed_treasury_account_balance.select(fact_cols).join(
+        account_lookup, on="account_number", how="left",
+    ).join(
+        acc_id_lookup, on="account_number", how="left",
+    )
+    # Ensure required columns exist
+    for col, dtype in [("entity_report_id", pl.String), ("account_id", pl.String)]:
+        if col not in fact_df.columns:
+            fact_df = fact_df.with_columns(pl.lit(None).cast(dtype).alias(col))
+    if "balance" in fact_df.columns:
+        fact_df = fact_df.with_columns(pl.col("balance").cast(pl.Float64, strict=False).alias("balance_amount"))
+    else:
+        fact_df = fact_df.with_columns(pl.lit(None).cast(pl.Float64).alias("balance_amount"))
+    if "converted_amount" not in fact_df.columns:
+        fact_df = fact_df.with_columns(pl.lit(None).cast(pl.Float64).alias("converted_amount"))
 
-    # add account_id from dim_account
-    acc_id_lookup = dim_account[["account_number", "account_id"]].drop_duplicates(subset="account_number")
-    fact = fact.merge(acc_id_lookup, on="account_number", how="left")
+    fact_df = fact_df.select([
+        "account_id", "entity_report_id", "period",
+        "balance_amount", "converted_amount", "currency",
+        "balance_date", "is_partner_bank", "is_overseas",
+    ]).unique()
 
-    fact_df = pd.DataFrame({
-        "account_id": fact.get("account_id"),
-        "entity_report_id": fact.get("entity_report_id"),
-        "period": fact.get("period", account_info.get("period").iloc[0] if len(account_info) > 0 else ""),
-        "balance_amount": pd.to_numeric(fact.get("balance"), errors="coerce"),
-        "converted_amount": pd.to_numeric(fact.get("converted_amount"), errors="coerce"),
-        "currency": fact.get("currency"),
-        "balance_date": fact.get("balance_date"),
-        "is_partner_bank": fact.get("is_partner_bank"),
-        "is_overseas": fact.get("is_overseas"),
-    })
-
-    fact_df = fact_df.drop_duplicates()
-
-    logger.info(f"Built dim_treasury_account: {len(dim_account)} rows")
-    logger.info(f"Built dim_treasury_account_type: {len(dim_account_type)} rows")
-    logger.info(f"Built fact_treasury_account_balance: {len(fact_df)} rows")
-
+    logger.info(f"Built dim_treasury_account: {len(dim_account)} rows, "
+                f"dim_account_type: {len(dim_account_type)} rows, "
+                f"fact_balance: {len(fact_df)} rows")
     return dim_account, dim_account_type, fact_df
 
 

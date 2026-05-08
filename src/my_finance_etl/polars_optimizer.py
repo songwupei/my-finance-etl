@@ -1,9 +1,18 @@
 """
 Polars优化处理器，用于加速Excel文件处理。
 针对1500+个Excel文件提供并行处理和内存优化。
+
+文件过滤规则:
+  - 跳过临时文件（~$ 和 .~ 前缀）
+  - 跳过 unit_code（本企业代码）或 parent_code（上级企业代码）为空的文件（必填强制校验）
+  - 选填字段（enterprise_address, sasac_area_raw, country_region_raw 等）为空时填"无"
+
+列一致性:
+  - 封面代码字段含 | 分隔符时 _split_code_name 自动拆为 _code/_name
+  - 合并前按全集列对齐，缺失列填 NULL::Utf8
 """
 import polars as pl
-import pandas as pd
+import hashlib
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple, Union
 import logging
@@ -76,9 +85,15 @@ class PolarsExcelProcessor:
                     except Exception as e:
                         logger.warning(f"处理文件失败 {file_info.get('path', 'unknown')}: {e}")
 
-        # 合并结果
+        # 合并结果 — 列对齐：不同文件 | 拆分字段数不同(2或3个字段含|→19或21列)
         if all_base_info:
-            base_info_combined = pl.concat(all_base_info, how="vertical")
+            all_cols = sorted(set(c for bi in all_base_info for c in bi.columns))
+            base_info_combined = pl.concat(
+                [bi.with_columns([pl.lit(None).cast(pl.Utf8).alias(c)
+                 for c in all_cols if c not in bi.columns]).select(all_cols)
+                 for bi in all_base_info],
+                how="vertical"
+            )
             logger.info(f"基础信息合并完成: {base_info_combined.height} 行")
         else:
             base_info_combined = pl.DataFrame()
@@ -118,9 +133,11 @@ class PolarsExcelProcessor:
             dataset = PolarsExcelDataset(
                 filepath=str(filepath),
                 load_args={
-                    "sheet_name": None,  # 读取所有工作表（参数名修正为单数）
-                    "engine": "calamine",  # 高性能Excel引擎
-                    "infer_schema_length": 1000
+                    "sheet_id": 0,  # 0=读取全部工作表，返回Dict[str, DataFrame]
+                    "engine": "calamine",
+                    "has_header": False,  # 禁用自动header检测，手动处理
+                    "infer_schema_length": 0,
+                    "raise_if_empty": False
                 }
             )
 
@@ -160,6 +177,17 @@ class PolarsExcelProcessor:
                     base_info = self._parse_base_info_sheet_polars(df, override)
                     if base_info:
                         base_info.update(metadata)
+                        # 剔除必填字段为空的文件
+                        unit_code_val = base_info.get("unit_code", "").strip()
+                        parent_code_val = base_info.get("parent_code", "").strip()
+                        if not unit_code_val or not parent_code_val:
+                            logger.debug(f"跳过文件 (必填字段为空 unit_code={unit_code_val!r} parent_code={parent_code_val!r}): {filepath}")
+                            return None, None
+                        # 选填字段为空时填"无"
+                        for opt_field in ("enterprise_address", "sasac_area_raw",
+                                          "country_region_raw", "industry_affiliation", "industry_code"):
+                            if not base_info.get(opt_field, "").strip():
+                                base_info[opt_field] = "无"
                         base_info_records.append(base_info)
                 elif sheet_type == "report_data":
                     report_df = self._parse_report_sheet_polars(df, sheet_name, override, metadata)
@@ -307,7 +335,18 @@ class PolarsExcelProcessor:
                 header_values = df.row(header_row)
                 # 设置列名
                 df = df.slice(header_row + 1)
-                df.columns = [str(val) if val is not None else f"col_{i}" for i, val in enumerate(header_values)]
+                new_cols = []
+                seen = {}
+                for i, val in enumerate(header_values):
+                    name = str(val).strip() if val is not None else f"col_{i}"
+                    name = name or f"col_{i}"
+                    if name in seen:
+                        seen[name] += 1
+                        name = f"{name}_{seen[name]}"
+                    else:
+                        seen[name] = 0
+                    new_cols.append(name)
+                df.columns = new_cols
 
             # 识别指标列
             indicator_col_idx = None
@@ -315,101 +354,121 @@ class PolarsExcelProcessor:
                 indicator_col_idx = indicator_col
             elif isinstance(indicator_col, str):
                 for i, col in enumerate(df.columns):
-                    if col == indicator_col:
+                    if indicator_col in str(col):  # 子串匹配 (如 "项" 匹配 "项      目")
                         indicator_col_idx = i
                         break
 
-            # 识别数值列
+            # 识别数值列: 1) 配置的 value_columns 名 2) 正则模式 3) 多行采样
             value_cols = []
-            patterns = rules.get("value_columns_pattern", default_rules["value_columns_pattern"])
+            value_col_names = rules.get("value_columns", [])
             for i, col in enumerate(df.columns):
-                col_str = str(col)
-                for pattern in patterns:
-                    import re
-                    if re.search(pattern, col_str):
-                        value_cols.append(i)
-                        break
+                col_str = str(col).strip()
+                if col_str in value_col_names:
+                    value_cols.append(i)
 
             if not value_cols:
-                # 默认：选择数值类型的列
+                patterns = rules.get("value_columns_pattern", default_rules["value_columns_pattern"])
                 for i, col in enumerate(df.columns):
-                    try:
-                        # 尝试转换第一行的值为数值
-                        first_val = df[0, i]
-                        if first_val is not None:
-                            float(str(first_val))
+                    col_str = str(col)
+                    for pattern in patterns:
+                        import re
+                        if re.search(pattern, col_str):
                             value_cols.append(i)
-                    except:
-                        pass
+                            break
+
+            if not value_cols:
+                # 回退：采样前10行，找含数字的列
+                sample_rows = min(10, df.height)
+                for i in range(len(df.columns)):
+                    has_num = False
+                    for r in range(sample_rows):
+                        try:
+                            v = df[r, i]
+                            if v is not None:
+                                s = str(v).strip()
+                                if s and s != '--':
+                                    float(s.replace(',', ''))
+                                    has_num = True
+                                    break
+                        except (ValueError, TypeError):
+                            continue
+                    if has_num:
+                        value_cols.append(i)
 
             if not value_cols:
                 logger.warning(f"工作表 {sheet_name} 中未找到数值列")
                 return pl.DataFrame()
 
-            # 构建记录
-            records = []
-            for row_idx in range(df.height):
-                indicator_raw = ""
-                if indicator_col_idx is not None:
-                    indicator_val = df[row_idx, indicator_col_idx]
-                    indicator_raw = str(indicator_val) if indicator_val is not None else ""
+            # 向量化：unpivot 宽表→长表，替代 row_idx × val_col_idx 双循环
+            if indicator_col_idx is None:
+                indicator_col_idx = 0
+            indicator_col_name = df.columns[indicator_col_idx]
+            value_col_names = [df.columns[i] for i in value_cols]
 
-                if not indicator_raw or indicator_raw == "nan":
-                    continue
+            # 过滤空行/章节标题行，只保留有指标名称的数据行
+            df_data = df.filter(
+                pl.col(indicator_col_name).is_not_null() &
+                (pl.col(indicator_col_name).cast(pl.Utf8).str.strip_chars() != "") &
+                (pl.col(indicator_col_name).cast(pl.Utf8).str.strip_chars() != "nan")
+            )
 
-                # 简化处理：直接使用原始文本
-                clean_name = indicator_raw.strip()
-                level = 1
-
-                # 处理每个数值列
-                for val_col_idx in value_cols:
-                    val_col_name = str(df.columns[val_col_idx])
-                    val = df[row_idx, val_col_idx]
-
-                    try:
-                        if val is not None:
-                            val_float = float(str(val))
-                        else:
-                            val_float = 0.0
-                    except (ValueError, TypeError):
-                        val_float = 0.0
-
-                    record = {
-                        "indicator_raw": indicator_raw,
-                        "indicator_clean": clean_name,
-                        "indicator_number": None,
-                        "indicator_level": level,
-                        "full_path": clean_name,
-                        "value_column": val_col_name,
-                        "value": val_float,
-                        "sheet_name": sheet_name,
-                        **file_meta
-                    }
-                    records.append(record)
-
-            if records:
-                return pl.DataFrame(records)
-            else:
+            if df_data.is_empty():
                 return pl.DataFrame()
+
+            # unpivot: 每个 value_column 变成一行
+            result = df_data.unpivot(
+                index=[c for c in df_data.columns if c not in value_col_names],
+                on=value_col_names,
+                variable_name="value_column",
+                value_name="value"
+            )
+
+            indicator_raw_series = result[indicator_col_name].cast(pl.Utf8).str.strip_chars()
+            # 剥除编号前缀和前缀词，得到干净的指标名称用于 matcher 匹配
+            indicator_clean_series = (
+                indicator_raw_series
+                .str.replace(r'^\s*\d+(?:[-.]\d+)*\s*[\.、\s]+', '')
+                .str.strip_chars()
+            )
+            for prefix in ("其中：", "减：", "加：", "其中,"):
+                indicator_clean_series = indicator_clean_series.str.strip_prefix(prefix)
+            indicator_clean_series = indicator_clean_series.str.strip_chars()
+
+            # 不填 report_category (留空)，让 standardize_report_data 的 matcher 决定
+            report_category = ""
+
+            result = result.with_columns([
+                indicator_raw_series.alias("indicator_raw"),
+                indicator_clean_series.alias("indicator_clean"),
+                indicator_raw_series.alias("full_path"),
+                indicator_clean_series.alias("top_level_account_name"),
+                pl.lit(None, dtype=pl.Utf8).alias("indicator_number"),
+                pl.lit(1, dtype=pl.Int32).alias("indicator_level"),
+                pl.col("value").cast(pl.Float64, strict=False).fill_null(0.0).alias("value"),
+                pl.lit(sheet_name).alias("sheet_name"),
+                pl.lit(report_category).alias("report_category"),
+            ])
+
+            # 只保留目标列 + file_meta
+            keep_cols = [
+                "indicator_raw", "indicator_clean", "indicator_number",
+                "indicator_level", "full_path", "value_column", "value",
+                "sheet_name", "report_category", "top_level_account_name"
+            ]
+            result = result.select(keep_cols)
+            for k, v in file_meta.items():
+                result = result.with_columns(pl.lit(v).cast(pl.Utf8).alias(k))
+
+            return result if not result.is_empty() else pl.DataFrame()
 
         except Exception as e:
             logger.error(f"解析报表工作表 {sheet_name} 失败: {e}")
             return pl.DataFrame()
 
-    def convert_to_pandas_if_needed(self, df: pl.DataFrame) -> pd.DataFrame:
-        """将Polars DataFrame转换为Pandas DataFrame（如果需要）"""
-        if isinstance(df, pl.DataFrame):
-            return df.to_pandas()
-        elif isinstance(df, pd.DataFrame):
-            return df
-        else:
-            raise TypeError(f"不支持的类型: {type(df)}")
-
-
 def create_polars_pipeline_node(
     catalog: Dict[str, Any],
-    config_path: str = "conf/base/finance_loader.yml"
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    config_path: str = "base/finance_loader.yml"
+) -> Tuple[pl.DataFrame, pl.DataFrame]:
     """
     创建Polars优化的pipeline节点函数。
 
@@ -433,7 +492,7 @@ def create_polars_pipeline_node(
     config_file = Path(settings.CONF_SOURCE) / config_path if not Path(config_path).is_absolute() else Path(config_path)
     if not config_file.exists():
         logger.error(f"配置文件不存在: {config_file}")
-        return pd.DataFrame(), pd.DataFrame()
+        return pl.DataFrame(), pl.DataFrame()
 
     with open(config_file, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
@@ -448,11 +507,19 @@ def create_polars_pipeline_node(
             month_pattern = config.get("data_source", {}).get("month_folder_pattern", r"\d{4}年\d{1,2}月")
             file_name_patterns = config.get("file_name_pattern", {}).get("patterns", [])
 
-            import re
+            import re, calendar
             if base_path.exists():
                 month_folders = [d for d in base_path.iterdir() if d.is_dir() and re.search(month_pattern, d.name)]
                 for month_folder in month_folders:
+                    # Parse period from folder name (e.g. "2026年02月" → "2026-02-28")
+                    pm = re.search(r'(\d{4})年(\d{1,2})月', month_folder.name)
+                    period = ""
+                    if pm:
+                        y, mth = int(pm.group(1)), int(pm.group(2))
+                        period = f"{y}-{mth:02d}-{calendar.monthrange(y, mth)[1]:02d}"
+
                     excel_files = list(month_folder.glob("*.xlsx")) + list(month_folder.glob("*.xls"))
+                    excel_files = [f for f in excel_files if not f.name.startswith(('.~', '~$'))]
                     for file_path in excel_files:
                         matched = False
                         for pattern_cfg in file_name_patterns:
@@ -460,12 +527,17 @@ def create_polars_pipeline_node(
                             m = re.match(regex, file_path.name)
                             if m:
                                 metadata = m.groupdict()
+                                code = metadata.get("code", "")
+                                suffix = metadata.get("suffix", "")
+                                entity_id = hashlib.md5(f"{code}|{suffix}".encode()).hexdigest()[:8]
                                 files.append({
                                     "path": str(file_path),
-                                    "code": metadata.get("code", ""),
-                                    "suffix": metadata.get("suffix", ""),
+                                    "code": code,
+                                    "suffix": suffix,
                                     "month_folder": month_folder.name,
-                                    "unit": metadata.get("unit", file_path.stem)
+                                    "unit": metadata.get("unit", file_path.stem),
+                                    "entity_report_id": entity_id,
+                                    "period": period,
                                 })
                                 matched = True
                                 break
@@ -473,20 +545,16 @@ def create_polars_pipeline_node(
                             logger.debug(f"文件 {file_path.name} 不匹配任何模式，已跳过")
     except Exception as e:
         logger.warning(f"获取文件列表失败: {e}")
-        return pd.DataFrame(), pd.DataFrame()
+        return pl.DataFrame(), pl.DataFrame()
 
     if not files:
         logger.warning("没有找到Excel文件")
-        return pd.DataFrame(), pd.DataFrame()
+        return pl.DataFrame(), pl.DataFrame()
 
     # 使用Polars处理器
     processor = PolarsExcelProcessor(max_workers=4, chunk_size=50)
     base_info_polars, report_data_polars = processor.process_excel_batch_polars(files, config)
 
-    # 转换为Pandas以保持兼容性
-    base_info_pandas = processor.convert_to_pandas_if_needed(base_info_polars)
-    report_data_pandas = processor.convert_to_pandas_if_needed(report_data_polars)
+    logger.info(f"Polars处理完成: {base_info_polars.height} 条基础信息, {report_data_polars.height} 条报表数据")
 
-    logger.info(f"Polars处理完成: {len(base_info_pandas)} 条基础信息, {len(report_data_pandas)} 条报表数据")
-
-    return base_info_pandas, report_data_pandas
+    return base_info_polars, report_data_polars

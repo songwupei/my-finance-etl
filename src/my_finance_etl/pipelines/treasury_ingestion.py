@@ -1,6 +1,6 @@
 """司库数据摄入 Pipeline — 批量解析司库 Excel 文件。"""
 import logging
-import pandas as pd
+import polars as pl
 from kedro.pipeline import Pipeline, node
 
 from ..treasury_parser import transform_treasury_data
@@ -33,9 +33,13 @@ def batch_parse_treasury_files(catalog, parameters: dict = None):
             logger.info(f"Parsing {name} (file_type={file_type})")
 
             for sheet_name, df in excel_data.items():
+                if not isinstance(df, pl.DataFrame):
+                    df = pl.from_pandas(df)
                 df = transform_treasury_data(df, file_type)
-                df["source_file"] = name
-                df["period"] = period
+                df = df.with_columns([
+                    pl.lit(name).alias("source_file"),
+                    pl.lit(period).alias("period"),
+                ])
 
                 if file_type == "account_info":
                     account_info_frames.append(df)
@@ -45,8 +49,8 @@ def batch_parse_treasury_files(catalog, parameters: dict = None):
         except Exception as e:
             logger.error(f"Failed to parse {name}: {e}")
 
-    parsed_info = pd.concat(account_info_frames, ignore_index=True) if account_info_frames else pd.DataFrame()
-    parsed_balance = pd.concat(account_balance_frames, ignore_index=True) if account_balance_frames else pd.DataFrame()
+    parsed_info = pl.concat(account_info_frames, how="vertical") if account_info_frames else pl.DataFrame()
+    parsed_balance = pl.concat(account_balance_frames, how="vertical") if account_balance_frames else pl.DataFrame()
 
     logger.info(f"Parsed {len(parsed_info)} account_info rows, {len(parsed_balance)} account_balance rows")
     return parsed_info, parsed_balance

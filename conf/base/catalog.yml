@@ -1,67 +1,67 @@
 # ========== 中间数据 ==========
 parsed_base_info:
-  type: pandas.ParquetDataset
+  type: my_finance_etl.io.polars_parquet_dataset.PolarsParquetDataset
   filepath: data/03_primary/parsed_base_info.parquet
 
 parsed_report_data:
-  type: pandas.ParquetDataset
+  type: my_finance_etl.io.polars_parquet_dataset.PolarsParquetDataset
   filepath: data/03_primary/parsed_report_data.parquet
 
 processed_report_data:
-  type: pandas.ParquetDataset
+  type: my_finance_etl.io.polars_parquet_dataset.PolarsParquetDataset
   filepath: data/03_primary/processed_report_data.parquet
 
 # ========== 维度表 ==========
 dim_unit_report:
-  type: pandas.ParquetDataset
+  type: my_finance_etl.io.polars_parquet_dataset.PolarsParquetDataset
   filepath: data/03_primary/dim_unit_report.parquet
 
 dim_caliber:
-  type: pandas.ParquetDataset
+  type: my_finance_etl.io.polars_parquet_dataset.PolarsParquetDataset
   filepath: data/03_primary/dim_caliber.parquet
 
 dim_report_category:
-  type: pandas.ParquetDataset
+  type: my_finance_etl.io.polars_parquet_dataset.PolarsParquetDataset
   filepath: data/03_primary/dim_report_category.parquet
 
 dim_standard_account:
-  type: pandas.ParquetDataset
+  type: my_finance_etl.io.polars_parquet_dataset.PolarsParquetDataset
   filepath: data/03_primary/dim_standard_account.parquet
 
 dim_period:
-  type: pandas.ParquetDataset
+  type: my_finance_etl.io.polars_parquet_dataset.PolarsParquetDataset
   filepath: data/03_primary/dim_period.parquet
 
 dim_organization_tree:
-  type: pandas.ParquetDataset
+  type: my_finance_etl.io.polars_parquet_dataset.PolarsParquetDataset
   filepath: data/03_primary/dim_organization_tree.parquet
 
 # ========== 事实表 ==========
 fact_finance_data:
-  type: pandas.ParquetDataset
+  type: my_finance_etl.io.polars_parquet_dataset.PolarsParquetDataset
   filepath: data/03_primary/fact_finance_data.parquet
 
 # ========== 司库-账户中间数据 ==========
 parsed_treasury_account_info:
-  type: pandas.ParquetDataset
+  type: my_finance_etl.io.polars_parquet_dataset.PolarsParquetDataset
   filepath: data/03_primary/parsed_treasury_account_info.parquet
 
 parsed_treasury_account_balance:
-  type: pandas.ParquetDataset
+  type: my_finance_etl.io.polars_parquet_dataset.PolarsParquetDataset
   filepath: data/03_primary/parsed_treasury_account_balance.parquet
 
 # ========== 司库-账户维度表 ==========
 dim_treasury_account:
-  type: pandas.ParquetDataset
+  type: my_finance_etl.io.polars_parquet_dataset.PolarsParquetDataset
   filepath: data/03_primary/dim_treasury_account.parquet
 
 dim_treasury_account_type:
-  type: pandas.ParquetDataset
+  type: my_finance_etl.io.polars_parquet_dataset.PolarsParquetDataset
   filepath: data/03_primary/dim_treasury_account_type.parquet
 
 # ========== 司库-账户事实表 ==========
 fact_treasury_account_balance:
-  type: pandas.ParquetDataset
+  type: my_finance_etl.io.polars_parquet_dataset.PolarsParquetDataset
   filepath: data/03_primary/fact_treasury_account_balance.parquet
 
 # ========== DuckDB数据仓库 ==========

@@ -8,9 +8,22 @@ data_source:
 database:
   type: "duckdb"
   path: "data/warehouse/finance_warehouse.duckdb"
+  # path: "data/warehouse/finance_warehouse_dev.duckdb"
 
 processing:
   custom_scripts_dir: "scripts"
 
 organization:
   root_code: "91110000710924910F"   # 集团总部统一社会信用代码
+
+data_standard:
+  use_new_standard: false           # 特性开关: true=新标准驱动, false=兼容模式
+  schema_registry_path: "standards/finance_treasury_standard.yaml"
+
+map:
+  # provider: "gaode"          # 高德瓦片地图
+  provider: "tianditu"          # 天地图瓦片地图
+  zoom: 3                    # 全国视图
+  center_lon: 104.195        # 中国地理中心
+  center_lat: 35.675
+  height: 800               # 地图高度

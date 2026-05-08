@@ -11,7 +11,7 @@ import polars as pl
 import vizro.plotly.express as px
 from vizro import Vizro
 import vizro.models as vm
-from map_utils.china_map import create_china_map_figure
+from map_utils.china_map import create_china_map_figure, add_scattermap
 import numpy as np
 from vizro.models.types import capture
 
@@ -182,13 +182,14 @@ def get_node_data():
             [entity_id, data_period],
         ).fetchdf()
         records = df.to_dict(orient="records")
+        _clean = lambda s: re.sub(r'[（(][^）)]*[）)]', '', re.sub(r'^\s*\d+(?:[-.]\d+)*\s*[\.、\s]+|^(其中：|减：|加：|其中,)\s*', '', s)).strip()
         for r in records:
             std_top = r.get("指标名称", "")
             raw_path = r.get("原始指标名称", "")
             raw_top = raw_path.split(">")[0].strip() if raw_path else ""
             r["标准对比键"] = std_top
             r["原始对比键"] = raw_top
-            r["是否匹配"] = re.sub(r'[（(][^）)]*[）)]', '', std_top).strip() == re.sub(r'[（(][^）)]*[）)]', '', raw_top).strip()
+            r["是否匹配"] = _clean(std_top) == _clean(raw_top)
         return jsonify(records)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
@@ -360,7 +361,7 @@ def get_units_geo():
 
 # --------------- Vizro 仪表板 ---------------
 
-_vizro_db = "/home/song/NutstoreFiles/5-Quartools/app_py/skdata-etl/data/warehouse/finance_warehouse.duckdb"
+_vizro_db = _get_db_path()
 _vizro_con = duckdb.connect(_vizro_db, read_only=True)
 
 # 图1：资产负债表散点 — 货币资金(x) vs 资产总额(y)，颜色=log10(资产总额)
@@ -430,6 +431,21 @@ _vizro_page_overview = vm.Page(
 )
 
 # 图3：中国地图 — 单位地理分布 + 资产规模
+# 自动处理 geo 数据：缺失时调用 geocoder，缺表时从 Parquet 补同步
+_geo_parquet = _proj_dir / "data/03_primary/dim_unit_geo.parquet"
+try:
+    from my_finance_etl.geocoder import run as run_geocoder
+    if not _geo_parquet.exists():
+        run_geocoder()
+    elif not _table_exists(_vizro_con, "finance_data", "dim_unit_geo"):
+        import polars as pl
+        geo_df = pl.read_parquet(str(_geo_parquet))
+        _vizro_con.register("_geo", geo_df.to_pandas())
+        _vizro_con.execute("CREATE TABLE IF NOT EXISTS finance_data.dim_unit_geo AS SELECT * FROM _geo")
+        print(f"[flask] Synced {geo_df.height} geo rows to DuckDB from parquet")
+except Exception:
+    pass
+
 _vizro_geo_data = pl.DataFrame()
 try:
     _vizro_geo_data = _vizro_con.execute("""
@@ -463,51 +479,60 @@ if _vizro_geo_data.shape[0] > 0:
     _vizro_geo_data["hover_text"] = (
         _vizro_geo_data["unit_name"] + "<br>" +
         _vizro_geo_data["enterprise_address"].fillna("").str.strip() + "<br>" +
-        "资产总额: " + _vizro_geo_data["total_assets"].apply(lambda x: f"{x:,.0f}")
+        "资产总额: " + _vizro_geo_data["total_assets"].apply(lambda x: f"{x:,.0f}万元")
     )
 
     import plotly.graph_objects as go
 
+    _map_cfg = yaml.safe_load(open(_proj_dir / "conf/base/parameters.yml")).get("map", {})
     @capture("graph")
     def geo_map(data_frame=_vizro_geo_data):
         data_frame = data_frame.copy()
-        # data_frame["size_scaled"] = np.log10(data_frame["total_assets"].clip(lower=1))
         data_frame["size_scaled"] = data_frame["total_assets"]/10000
         data_frame["hover_text"] = (
             data_frame["unit_name"] + "<br>" +
             data_frame["enterprise_address"].fillna("").str.strip() + "<br>" +
-            "资产总额: " + data_frame["total_assets"].apply(lambda x: f"{x:,.0f}")
+            "资产总额: " + data_frame["total_assets"].apply(lambda x: f"{x:,.0f}万元")
         )
-        fig = create_china_map_figure(provider="gaode", tile_type="vec", zoom=8,
-                                       height=600, title="单位地理分布")
-        fig.add_trace(
-            go.Scattermap(
-                lat=data_frame["latitude"],
-                lon=data_frame["longitude"],
-                mode="markers",
-                marker=dict(
-                    size=data_frame["size_scaled"].clip(lower=3),
-                    color=np.log10(data_frame["total_assets"].clip(lower=1)),
-                    colorscale="Viridis",
-                    showscale=True,
-                    colorbar=dict(title="log10 资产"),
-                    sizemin=3, sizemode="area",
-                    opacity=0.7, symbol="circle",
+        provider = _map_cfg.get("provider", "gaode")
+        fig = create_china_map_figure(
+            provider=provider,
+            tile_type="vec",
+            center_lon=_map_cfg.get("center_lon", 104.195),
+            center_lat=_map_cfg.get("center_lat", 35.675),
+            zoom=_map_cfg.get("zoom", 3),
+            height=_map_cfg.get("height", 800),
+            title="成员单位地理分布")
+        add_scattermap(
+            fig, provider,
+            lat=data_frame["latitude"].to_list(),
+            lon=data_frame["longitude"].to_list(),
+            mode="markers",
+            marker=dict(
+                size=data_frame["size_scaled"].clip(lower=3),
+                color=np.log10(data_frame["total_assets"].clip(lower=1)),
+                colorscale="Viridis",
+                showscale=True,
+                colorbar=dict(
+                    title="资产总额 (人民币元)",
+                    tickvals=[1,2,3,4,5,6],
+                    ticktext=["10", "100", "1,000", "1万", "10万", "100万"],
                 ),
-                text=data_frame["hover_text"],
-                hoverinfo="text",
-            )
+                sizemin=3, sizemode="area",
+                opacity=0.7, symbol="circle",
+            ),
+            text=data_frame["hover_text"].to_list(),
+            hoverinfo="text",
         )
         return fig
 
     _vizro_geo_fig = geo_map(data_frame=_vizro_geo_data)
 
+_vizro_page_map_components = [vm.Graph(figure=_vizro_geo_fig)] if _vizro_geo_fig is not None else [vm.Card(text="地理分布 — 等待地理编码数据")]
 _vizro_page_map = vm.Page(
     id="china-map",
     title="地理分布",
-    components=[
-        vm.Graph(figure=_vizro_geo_fig)
-    ],
+    components=_vizro_page_map_components,
 )
 
 _vizro_navigation = vm.Navigation(

@@ -1,7 +1,6 @@
 """DuckDB数据仓库实现，支持Parquet到DuckDB的自动同步和优化查询。"""
 import duckdb
 import polars as pl
-import pandas as pd
 import logging
 from pathlib import Path
 from typing import List, Dict, Any, Optional
@@ -176,28 +175,31 @@ class DuckDBDataWarehouse:
 
     def load_treasury_tables(
         self,
-        dim_treasury_account: pd.DataFrame,
-        dim_treasury_account_type: pd.DataFrame,
-        fact_treasury_account_balance: pd.DataFrame,
+        dim_treasury_account: pl.DataFrame,
+        dim_treasury_account_type: pl.DataFrame,
+        fact_treasury_account_balance: pl.DataFrame,
     ) -> None:
         """直接加载司库 DataFrame 到 DuckDB 表。"""
         self.logger.info("加载司库表到 DuckDB...")
 
         self.conn.execute("CREATE SCHEMA IF NOT EXISTS finance_data;")
 
-        if not dim_treasury_account.empty:
-            self.conn.execute("CREATE OR REPLACE TABLE finance_data.dim_treasury_account AS SELECT * FROM dim_treasury_account")
+        if not dim_treasury_account.is_empty():
+            self.conn.register("_dim_ta", dim_treasury_account)
+            self.conn.execute("CREATE OR REPLACE TABLE finance_data.dim_treasury_account AS SELECT * FROM _dim_ta")
             self.conn.execute("CREATE INDEX IF NOT EXISTS idx_ta_entity ON finance_data.dim_treasury_account(entity_report_id)")
             self.conn.execute("CREATE INDEX IF NOT EXISTS idx_ta_number ON finance_data.dim_treasury_account(account_number)")
             self.conn.execute("ANALYZE finance_data.dim_treasury_account")
             self.logger.info(f"  dim_treasury_account: {len(dim_treasury_account)} rows")
 
-        if not dim_treasury_account_type.empty:
-            self.conn.execute("CREATE OR REPLACE TABLE finance_data.dim_treasury_account_type AS SELECT * FROM dim_treasury_account_type")
+        if not dim_treasury_account_type.is_empty():
+            self.conn.register("_dim_tat", dim_treasury_account_type)
+            self.conn.execute("CREATE OR REPLACE TABLE finance_data.dim_treasury_account_type AS SELECT * FROM _dim_tat")
             self.logger.info(f"  dim_treasury_account_type: {len(dim_treasury_account_type)} rows")
 
-        if not fact_treasury_account_balance.empty:
-            self.conn.execute("CREATE OR REPLACE TABLE finance_data.fact_treasury_account_balance AS SELECT * FROM fact_treasury_account_balance")
+        if not fact_treasury_account_balance.is_empty():
+            self.conn.register("_fact_tab", fact_treasury_account_balance)
+            self.conn.execute("CREATE OR REPLACE TABLE finance_data.fact_treasury_account_balance AS SELECT * FROM _fact_tab")
             self.conn.execute("CREATE INDEX IF NOT EXISTS idx_fab_entity ON finance_data.fact_treasury_account_balance(entity_report_id)")
             self.conn.execute("CREATE INDEX IF NOT EXISTS idx_fab_period ON finance_data.fact_treasury_account_balance(period)")
             self.conn.execute("CREATE INDEX IF NOT EXISTS idx_fab_account ON finance_data.fact_treasury_account_balance(account_id)")
@@ -292,17 +294,17 @@ class DuckDBDataWarehouse:
         except Exception as e:
             self.logger.warning(f"数据库优化失败: {e}")
 
-    def execute_query(self, query: str) -> pd.DataFrame:
-        """执行SQL查询并返回Pandas DataFrame。
+    def execute_query(self, query: str) -> pl.DataFrame:
+        """执行SQL查询并返回Polars DataFrame。
 
         Args:
             query: SQL查询语句
 
         Returns:
-            查询结果的Pandas DataFrame
+            查询结果的Polars DataFrame
         """
         try:
-            return self.conn.execute(query).fetch_df()
+            return self.conn.execute(query).pl()
         except Exception as e:
             self.logger.error(f"查询执行失败: {e}\n查询: {query}")
             raise
@@ -387,13 +389,13 @@ class DuckDBDataWarehouse:
 
 # 工具函数
 def load_to_duckdb_warehouse(
-    dim_unit_report: pd.DataFrame,
-    dim_caliber: pd.DataFrame,
-    dim_report_category: pd.DataFrame,
-    dim_period: pd.DataFrame,
-    dim_standard_account: pd.DataFrame,
-    dim_organization_tree: pd.DataFrame,
-    fact_finance_data: pd.DataFrame,
+    dim_unit_report: pl.DataFrame,
+    dim_caliber: pl.DataFrame,
+    dim_report_category: pl.DataFrame,
+    dim_period: pl.DataFrame,
+    dim_standard_account: pl.DataFrame,
+    dim_organization_tree: pl.DataFrame,
+    fact_finance_data: pl.DataFrame,
 ) -> tuple:
     """加载所有维度表和事实表到DuckDB数据仓库。
 

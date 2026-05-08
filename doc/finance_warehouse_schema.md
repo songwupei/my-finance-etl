@@ -383,7 +383,7 @@ WHERE f.period_id = (SELECT MAX(period_id) FROM finance_data.fact_finance_data)
 | `treasury_ingestion` | 资金 Excel 文件 → `treasury_parser.py` | 资金中间数据集 |
 | `treasury_processing` | 资金中间数据 | 标准化资金数据 |
 | `treasury_warehouse` | 标准化资金数据 | `dim_treasury_account`, `dim_treasury_account_type`, `fact_treasury_account_balance` |
-| `geocoder.py` + `scripts/geocode_units.py` | 单位地址 → 高德地图 API | `dim_unit_geo` |
+| `geocoder.py` | 单位地址 → 高德地图 API（优先 BQ 缓存） | `dim_unit_geo` |
 
 ### 核心模块
 

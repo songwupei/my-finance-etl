@@ -71,6 +71,11 @@ class StandardAccountMatcher:
         for acc in candidates:
             if report_type and acc.get("report_type") == report_type:
                 return acc
+        # report_type 为空时 → 用 account_name 精确匹配
+        if not report_type and name:
+            for acc in candidates:
+                if acc.get("account_name") == name:
+                    return acc
         # 仍无法消歧 → 返回第一个
         return candidates[0]
 

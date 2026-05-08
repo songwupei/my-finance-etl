@@ -1,0 +1,13 @@
+# Hook configuration for skdata-etl project
+# Commands / Python functions to execute at pipeline lifecycle points
+
+hooks:
+  # Commands to run after the last pipeline node executes
+  # after_pipeline:
+    # - {"cmd": "python -c \"from my_finance_etl.geocoder import run; run()\"", "cwd": "./"}
+
+  # Node-specific hooks
+  # after_nodes:
+    # 在 build_dimension_tables 完成后执行地理编码
+    # build_dimension_tables:
+    #   - "python -c \"from my_finance_etl.geocoder import run; run()\""

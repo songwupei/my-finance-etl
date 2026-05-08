@@ -2,7 +2,10 @@ import re
 import os
 import hashlib
 import logging
+import warnings
 from pathlib import Path
+
+warnings.filterwarnings("ignore", message="Workbook contains no default style")
 from calendar import monthrange
 from typing import Dict, Any, List
 
@@ -171,6 +174,8 @@ class DynamicExcelLoaderHooks:
             period_end_date = self._parse_period_end_date(month_folder.name)
 
             for excel_file in month_folder.glob("*.xlsx"):
+                if excel_file.name.startswith(('.~', '~$')):
+                    continue
                 file_info = self._parse_filename(excel_file.name, patterns)
                 if file_info:
                     file_info["path"] = str(excel_file)
@@ -199,6 +204,8 @@ class DynamicExcelLoaderHooks:
             for business_type, bt_config in business_types.items():
                 bt_patterns = bt_config.get("files", [])
                 for excel_file in month_folder.glob("*.xlsx"):
+                    if excel_file.name.startswith(('.~', '~$')):
+                        continue
                     file_info = self._parse_treasury_filename(excel_file.name, bt_patterns)
                     if file_info:
                         file_info["path"] = str(excel_file)
@@ -257,7 +264,9 @@ class DynamicExcelLoaderHooks:
         except Exception:
             return
 
-        node_hooks = config.get("hooks", {}).get(hook_type, {}).get(node_name, [])
+        if config is None:
+            return
+        node_hooks = (config.get("hooks") or {}).get(hook_type, {}).get(node_name, [])
         if not node_hooks:
             return
 

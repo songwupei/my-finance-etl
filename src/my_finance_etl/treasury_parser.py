@@ -1,5 +1,5 @@
 """司库数据 Excel 列映射器 — 对已加载的 DataFrame 做列名标准化。"""
-import pandas as pd
+import polars as pl
 import logging
 from typing import Dict
 
@@ -58,7 +58,7 @@ COLUMN_MAP_REGISTRY: Dict[str, dict] = {
 }
 
 
-def transform_treasury_data(df: pd.DataFrame, file_type: str) -> pd.DataFrame:
+def transform_treasury_data(df: pl.DataFrame, file_type: str) -> pl.DataFrame:
     """对已加载的 DataFrame 做列名标准化和基本清洗。
 
     Args:
@@ -72,10 +72,10 @@ def transform_treasury_data(df: pd.DataFrame, file_type: str) -> pd.DataFrame:
     if not column_map:
         raise ValueError(f"Unknown treasury file_type: {file_type}")
 
-    # 只保留映射中存在的列
-    existing = {k: v for k, v in column_map.items() if k in df.columns}
-    df = df[list(existing.keys())].rename(columns=existing)
+    # 只保留映射中存在的列，并重命名
+    existing = [(k, v) for k, v in column_map.items() if k in df.columns]
+    df = df.select([pl.col(k).alias(v) for k, v in existing])
 
     # 删除全空行和重复标题行
-    df = df.dropna(how="all")
+    df = df.filter(~pl.all_horizontal(pl.all().is_null()))
     return df

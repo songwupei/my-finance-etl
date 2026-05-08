@@ -1,5 +1,5 @@
 """Data warehouse pipeline for loading data into DuckDB."""
-import pandas as pd
+import polars as pl
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -9,73 +9,64 @@ from ..tree_builder import build_organization_tree
 
 
 def build_fact_table(
-    processed_report_data: pd.DataFrame,
-    dim_unit_report: pd.DataFrame,
-    dim_caliber: pd.DataFrame,
-    dim_report_category: pd.DataFrame,
-    dim_period: pd.DataFrame,
-    dim_standard_account: pd.DataFrame,
-) -> pd.DataFrame:
-    """Build fact_finance_data table by joining with dimension tables."""
-    if processed_report_data.empty:
-        return pd.DataFrame()
+    processed_report_data: pl.DataFrame,
+    dim_unit_report: pl.DataFrame,
+    dim_caliber: pl.DataFrame,
+    dim_report_category: pl.DataFrame,
+    dim_period: pl.DataFrame,
+    dim_standard_account: pl.DataFrame,
+) -> pl.DataFrame:
+    """Build fact_finance_data — vectorized with polars expressions, no row loop."""
+    if processed_report_data.is_empty():
+        return pl.DataFrame()
 
-    # Prepare fact data
-    fact_records = []
-    for _, row in processed_report_data.iterrows():
-        # Find dimension IDs
-        entity_report_id = row.get("entity_report_id")
-        period_id = row.get("period")
-        account_code = row.get("standard_account_code")
-        value_column = row.get("value_column")
+    # Resolve category_id via left join (tiny dim, fast)
+    # Cast both sides to Utf8 to avoid null vs str type mismatch
+    fact_df = processed_report_data.with_columns(
+        pl.col("report_category").cast(pl.Utf8)
+    ).join(
+        dim_report_category.select(
+            pl.col("category_name").cast(pl.Utf8).alias("report_category"),
+            pl.col("category_id"),
+        ),
+        on="report_category",
+        how="left",
+    )
 
-        # Default values if dimension IDs not found
-        caliber_id = "1"  # default caliber
-        category_id = None
+    n = fact_df.height
+    etl_ts = datetime.now().isoformat()
 
-        # Find category_id from report_category
-        report_category = row.get("report_category")
-        if pd.notna(report_category):
-            category_match = dim_report_category[dim_report_category["category_name"] == report_category]
-            if not category_match.empty:
-                category_id = category_match.iloc[0]["category_id"]
-
-        fact_records.append({
-            "id": str(uuid.uuid4()),
-            "entity_report_id": entity_report_id,
-            "period_id": period_id,
-            "account_code": account_code,
-            "caliber_id": caliber_id,
-            "category_id": category_id,
-            "value": row.get("value"),
-            "value_column": value_column,
-            "is_standardized": row.get("is_standardized", False),
-            "source_file": row.get("sheet_name", ""),
-            "raw_path": row.get("full_path", ""),
-            "top_level_account_name": row.get("top_level_account_name", ""),
-            "etl_created_at": datetime.now().isoformat(),
-        })
-
-    fact_df = pd.DataFrame(fact_records)
-
-    # Filter out records with missing essential dimension IDs
-    fact_df = fact_df[
-        fact_df["entity_report_id"].notna() &
-        fact_df["period_id"].notna() &
-        fact_df["account_code"].notna()
-    ]
+    fact_df = fact_df.select(
+        pl.Series("id", [str(uuid.uuid4()) for _ in range(n)]),
+        pl.col("entity_report_id"),
+        pl.col("period").alias("period_id"),
+        pl.col("standard_account_code").alias("account_code"),
+        pl.lit("1").alias("caliber_id"),
+        pl.col("category_id"),
+        pl.col("value"),
+        pl.col("value_column"),
+        pl.col("is_standardized").fill_null(False),
+        pl.col("sheet_name").fill_null("").alias("source_file"),
+        pl.col("full_path").fill_null("").alias("raw_path"),
+        pl.col("top_level_account_name").fill_null(""),
+        pl.lit(etl_ts).alias("etl_created_at"),
+    ).filter(
+        pl.col("entity_report_id").is_not_null() &
+        pl.col("period_id").is_not_null() &
+        pl.col("account_code").is_not_null()
+    )
 
     return fact_df
 
 
 def load_to_data_warehouse(
-    dim_unit_report: pd.DataFrame,
-    dim_caliber: pd.DataFrame,
-    dim_report_category: pd.DataFrame,
-    dim_period: pd.DataFrame,
-    dim_standard_account: pd.DataFrame,
-    dim_organization_tree: pd.DataFrame,
-    fact_finance_data: pd.DataFrame,
+    dim_unit_report: pl.DataFrame,
+    dim_caliber: pl.DataFrame,
+    dim_report_category: pl.DataFrame,
+    dim_period: pl.DataFrame,
+    dim_standard_account: pl.DataFrame,
+    dim_organization_tree: pl.DataFrame,
+    fact_finance_data: pl.DataFrame,
     parameters: dict = None,
 ) -> tuple:
     """加载所有维度表和事实表到数据仓库，并同步到DuckDB。"""

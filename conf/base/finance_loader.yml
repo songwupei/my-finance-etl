@@ -71,6 +71,8 @@ sheet_overrides:
       "国家和地区代码": "country_region_raw"
       "所在地区(国资委)": "sasac_area_raw"
       "企业所在地地址": "enterprise_address"
+      "企业行业隶属关系": "industry_affiliation"
+      "国民经济行业分类与代码": "industry_code"
   "司库报表_主要财务指标快报表":
     is_report: true
     report_category: "快报综合"

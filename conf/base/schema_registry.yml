@@ -1,0 +1,338 @@
+meta:
+  generated_from: standards/finance_treasury_standard.yaml
+  generated_at: '2026-05-08'
+tables:
+  dim_standard_account:
+    table_cn: 标准科目
+    columns:
+      account_code: 科目编码
+      account_name: 科目名称
+      report_category: 报表类别
+      account_code_dash: 科目编码(横杠)
+      standard_path: 标准路径
+      match_priority: 匹配优先级
+      sort_order: 排序序号
+    types:
+      account_code: VARCHAR(20)
+      account_name: VARCHAR(100)
+      report_category: VARCHAR(50)
+      account_code_dash: VARCHAR(20)
+      standard_path: VARCHAR(500)
+      match_priority: BIGINT
+      sort_order: BIGINT
+    nullable:
+      account_code: false
+      account_name: false
+      report_category: false
+      account_code_dash: true
+      standard_path: true
+      match_priority: true
+      sort_order: true
+  dim_report_category:
+    table_cn: 报表类别
+    columns:
+      category_id: 类别ID
+      category_name: 类别名称
+    types:
+      category_id: VARCHAR(10)
+      category_name: VARCHAR(50)
+    nullable:
+      category_id: false
+      category_name: false
+  dim_period:
+    table_cn: 会计期间
+    columns:
+      period_id: 期间ID
+      period_name: 期间名称
+      year: 年份
+      month: 月份
+    types:
+      period_id: VARCHAR(10)
+      period_name: VARCHAR(20)
+      year: BIGINT
+      month: BIGINT
+    nullable:
+      period_id: false
+      period_name: false
+      year: false
+      month: false
+  dim_caliber:
+    table_cn: 报表口径
+    columns:
+      caliber_id: 口径ID
+      caliber_name: 口径名称
+      description: 口径说明
+    types:
+      caliber_id: VARCHAR(10)
+      caliber_name: VARCHAR(50)
+      description: VARCHAR(200)
+    nullable:
+      caliber_id: false
+      caliber_name: false
+      description: true
+  dim_unit_report:
+    table_cn: 报表单位
+    columns:
+      entity_report_id: 单位上报ID
+      unit_name: 单位名称
+      code: 统一社会信用代码
+      suffix: 后缀
+      unit: 所属上级单位
+      period: 所属期间
+      province: 省份
+      city: 城市
+      area: 区县
+      enterprise_address: 企业地址
+      sasac_area_code: 国资委区域编码
+      sasac_area_name: 国资委区域名称
+      country_region_code: 国家地区编码
+      country_region_name: 国家地区名称
+      industry_affiliation: 企业行业隶属关系
+      industry_code: 国民经济行业分类与代码
+    types:
+      entity_report_id: VARCHAR(50)
+      unit_name: VARCHAR(200)
+      code: VARCHAR(18)
+      suffix: VARCHAR(10)
+      unit: VARCHAR(200)
+      period: VARCHAR(20)
+      province: VARCHAR(50)
+      city: VARCHAR(50)
+      area: VARCHAR(50)
+      enterprise_address: VARCHAR(500)
+      sasac_area_code: VARCHAR(20)
+      sasac_area_name: VARCHAR(100)
+      country_region_code: VARCHAR(20)
+      country_region_name: VARCHAR(100)
+      industry_affiliation: VARCHAR(200)
+      industry_code: VARCHAR(50)
+    nullable:
+      entity_report_id: false
+      unit_name: false
+      code: true
+      suffix: true
+      unit: true
+      period: true
+      province: true
+      city: true
+      area: true
+      enterprise_address: true
+      sasac_area_code: true
+      sasac_area_name: true
+      country_region_code: true
+      country_region_name: true
+      industry_affiliation: true
+      industry_code: true
+  dim_organization_tree:
+    table_cn: 组织架构树
+    columns:
+      node_id: 节点ID
+      parent_id: 父节点ID
+      node_name: 节点名称
+      unit_code: 单位编码
+      suffix: 后缀
+      period: 所属期间
+      entity_report_id: 单位上报ID
+    types:
+      node_id: VARCHAR(100)
+      parent_id: VARCHAR(100)
+      node_name: VARCHAR(300)
+      unit_code: VARCHAR(18)
+      suffix: VARCHAR(10)
+      period: VARCHAR(20)
+      entity_report_id: VARCHAR(50)
+    nullable:
+      node_id: false
+      parent_id: false
+      node_name: false
+      unit_code: true
+      suffix: true
+      period: true
+      entity_report_id: true
+  dim_treasury_account:
+    table_cn: 资金账户
+    columns:
+      account_id: 账户ID
+      account_number: 银行账号
+      account_name: 账户名称
+      financial_institution: 金融机构
+      opening_institution: 开户机构
+      institution_code: 机构联行号
+      account_status: 账户状态
+      country_region: 国家地区
+      account_nature: 账户性质
+      is_overseas: 是否境外
+      bank_city: 开户城市
+      is_partner_bank: 是否合作银行
+      currency: 币种
+      account_usage: 账户用途
+      is_visible: 是否可视
+      type_id: 账户类型ID
+      type_label: 账户类型标签
+      entity_report_id: 单位上报ID
+      org_code: 组织机构代码
+      unit_name: 单位名称
+      unit_id: 单位ID
+      sub_group_name: 子集团名称
+      source_file: 来源文件
+      period: 数据期间
+    types:
+      account_id: VARCHAR(50)
+      account_number: VARCHAR(50)
+      account_name: VARCHAR(128)
+      financial_institution: VARCHAR(128)
+      opening_institution: VARCHAR(128)
+      institution_code: VARCHAR(20)
+      account_status: VARCHAR(20)
+      country_region: VARCHAR(100)
+      account_nature: VARCHAR(50)
+      is_overseas: VARCHAR(10)
+      bank_city: VARCHAR(100)
+      is_partner_bank: VARCHAR(10)
+      currency: VARCHAR(10)
+      account_usage: VARCHAR(100)
+      is_visible: VARCHAR(10)
+      type_id: VARCHAR(50)
+      type_label: VARCHAR(50)
+      entity_report_id: VARCHAR(50)
+      org_code: VARCHAR(18)
+      unit_name: VARCHAR(200)
+      unit_id: VARCHAR(50)
+      sub_group_name: VARCHAR(200)
+      source_file: VARCHAR(200)
+      period: VARCHAR(20)
+    nullable:
+      account_id: false
+      account_number: false
+      account_name: true
+      financial_institution: true
+      opening_institution: true
+      institution_code: true
+      account_status: true
+      country_region: true
+      account_nature: true
+      is_overseas: true
+      bank_city: true
+      is_partner_bank: true
+      currency: true
+      account_usage: true
+      is_visible: true
+      type_id: true
+      type_label: true
+      entity_report_id: true
+      org_code: true
+      unit_name: true
+      unit_id: true
+      sub_group_name: true
+      source_file: true
+      period: true
+  dim_treasury_account_type:
+    table_cn: 账户类型分类
+    columns:
+      type_id: 类型ID
+      type_label: 类型标签
+      category_label: 父类别标签
+    types:
+      type_id: VARCHAR(50)
+      type_label: VARCHAR(50)
+      category_label: VARCHAR(50)
+    nullable:
+      type_id: false
+      type_label: false
+      category_label: true
+  dim_unit_geo:
+    table_cn: 单位地理信息
+    columns:
+      entity_report_id: 单位上报ID
+      longitude: 经度
+      latitude: 纬度
+      geocode_level: 地理编码级别
+      formatted_address: 格式化地址
+    types:
+      entity_report_id: VARCHAR(50)
+      longitude: DOUBLE
+      latitude: DOUBLE
+      geocode_level: VARCHAR(50)
+      formatted_address: VARCHAR(500)
+    nullable:
+      entity_report_id: false
+      longitude: true
+      latitude: true
+      geocode_level: true
+      formatted_address: true
+  fact_finance_data:
+    table_cn: 财务事实数据
+    columns:
+      id: 唯一ID
+      entity_report_id: 单位上报ID
+      period_id: 期间ID
+      account_code: 科目编码
+      caliber_id: 口径ID
+      category_id: 报表类别ID
+      value: 金额
+      value_column: 数值列类型
+      is_standardized: 是否已标准化
+      source_file: 来源文件
+      raw_path: 原始路径
+      top_level_account_name: 顶层科目名称
+      etl_created_at: ETL创建时间
+    types:
+      id: VARCHAR(36)
+      entity_report_id: VARCHAR(50)
+      period_id: VARCHAR(10)
+      account_code: VARCHAR(20)
+      caliber_id: VARCHAR(10)
+      category_id: VARCHAR(10)
+      value: DECIMAL(18,2)
+      value_column: VARCHAR(20)
+      is_standardized: BOOLEAN
+      source_file: VARCHAR(200)
+      raw_path: VARCHAR(500)
+      top_level_account_name: VARCHAR(100)
+      etl_created_at: TIMESTAMP
+    nullable:
+      id: false
+      entity_report_id: false
+      period_id: false
+      account_code: false
+      caliber_id: true
+      category_id: false
+      value: true
+      value_column: false
+      is_standardized: true
+      source_file: true
+      raw_path: true
+      top_level_account_name: true
+      etl_created_at: true
+  fact_treasury_account_balance:
+    table_cn: 资金账户余额
+    columns:
+      account_id: 账户ID
+      entity_report_id: 单位上报ID
+      period: 数据期间
+      balance_amount: 余额(原币)
+      converted_amount: 折算金额(本币)
+      currency: 币种
+      balance_date: 余额日期
+      is_partner_bank: 是否合作银行
+      is_overseas: 是否境外
+    types:
+      account_id: VARCHAR(50)
+      entity_report_id: VARCHAR(50)
+      period: VARCHAR(20)
+      balance_amount: DECIMAL(18,2)
+      converted_amount: DECIMAL(18,2)
+      currency: VARCHAR(10)
+      balance_date: VARCHAR(20)
+      is_partner_bank: VARCHAR(10)
+      is_overseas: VARCHAR(10)
+    nullable:
+      account_id: false
+      entity_report_id: false
+      period: false
+      balance_amount: true
+      converted_amount: true
+      currency: true
+      balance_date: true
+      is_partner_bank: true
+      is_overseas: true
