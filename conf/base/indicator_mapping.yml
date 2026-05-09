@@ -1,7 +1,7 @@
 # ==================== 标准科目库引用 ====================
 standard_accounts_source:
-  type: "json"
-  path: "conf/base/standard_accounts.json"
+  type: "yaml"
+  path: "conf/base/finance_mapping_standard.yaml"
   encoding: "utf-8"
 
 # ==================== 报表类型中文映射 ====================
@@ -10,15 +10,6 @@ report_type_names:
   income_statement: "利润表"
   cash_flow: "现金流量表"
   equity_change: "所有者权益变动表"
-
-# ==================== 上下文消歧规则 ====================
-context_rules:
-  - raw_indicator: "商业银行"
-    parent_path_pattern: "货币资金"
-    target_account_code: "01.02.99"
-  - raw_indicator: "商业银行"
-    parent_path_pattern: "短期借款"
-    target_account_code: "02.02.02"
 
 # ==================== 名称清洗 ====================
 name_cleaning:

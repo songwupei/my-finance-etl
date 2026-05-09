@@ -31,6 +31,29 @@ def _get_db_path():
 
 DB_PATH = _get_db_path()
 
+# YAML 映射查表 — 用于 /api/node_data 匹配验证
+_yaml_mapping_path = _proj_dir / "conf/base/finance_mapping_standard.yaml"
+_yaml_lookup = {}  # (清理后名称, 报表分区) → {code, path, category}
+
+
+def _init_yaml_lookup():
+    if not _yaml_mapping_path.exists():
+        return
+    with open(_yaml_mapping_path, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    for row in data.get("row_mappings", []):
+        if row.get("匹配状态") == "MATCHED" and row.get("标准科目代码"):
+            raw_key = re.sub(r'\s+', ' ', row.get("原始项目", "").strip())
+            if raw_key and raw_key not in _yaml_lookup:
+                _yaml_lookup[raw_key] = {
+                    "code": row["标准科目代码"],
+                    "path": row.get("标准科目路径", ""),
+                    "category": row.get("报表分区", ""),
+                }
+
+
+_init_yaml_lookup()
+
 
 def db_conn():
     return duckdb.connect(DB_PATH, read_only=True)
@@ -164,7 +187,8 @@ def get_node_data():
                 COALESCE(SUM(CASE WHEN f.value_column = '上年同期' THEN f.value ELSE NULL END), 0.0) AS "上年同期",
                 COALESCE(SUM(CASE WHEN f.value_column = '本年累计' THEN f.value ELSE NULL END), 0.0) AS "本年累计",
                 sa.report_category AS "报表类别",
-                sa.account_name AS "指标名称"
+                sa.account_name AS "指标名称",
+                sa.account_code AS "标准科目代码"
             FROM finance_data.fact_finance_data f
             JOIN finance_data.dim_report_category rc ON f.category_id = rc.category_id
             JOIN finance_data.dim_standard_account sa
@@ -182,14 +206,27 @@ def get_node_data():
             [entity_id, data_period],
         ).fetchdf()
         records = df.to_dict(orient="records")
-        _clean = lambda s: re.sub(r'[（(][^）)]*[）)]', '', re.sub(r'^\s*\d+(?:[-.]\d+)*\s*[\.、\s]+|^(其中：|减：|加：|其中,)\s*', '', s)).strip()
         for r in records:
             std_top = r.get("指标名称", "")
             raw_path = r.get("原始指标名称", "")
             raw_top = raw_path.split(">")[0].strip() if raw_path else ""
             r["标准对比键"] = std_top
             r["原始对比键"] = raw_top
-            r["是否匹配"] = _clean(std_top) == _clean(raw_top)
+
+            # 用原始指标名称直接查 YAML（规范化空格）
+            raw_key = re.sub(r'\s+', ' ', raw_path.strip())
+            yaml_match = _yaml_lookup.get(raw_key)
+            if not yaml_match:
+                # 回退：用 raw_top（第一段）查
+                raw_top_key = re.sub(r'\s+', ' ', raw_top.strip())
+                yaml_match = _yaml_lookup.get(raw_top_key)
+
+            if yaml_match:
+                actual_code = r.get("标准科目代码", "")
+                r["是否匹配"] = (yaml_match["code"] == actual_code)
+            else:
+                # YAML 中不存在的项目（如分析指标），直接显示匹配
+                r["是否匹配"] = True
         return jsonify(records)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
@@ -333,6 +370,11 @@ def get_units_geo():
         ):
             return jsonify([])
         df = conn.execute("""
+            WITH latest_unit AS (
+                SELECT DISTINCT ON (entity_report_id) *
+                FROM finance_data.dim_unit_report
+                ORDER BY entity_report_id, period DESC
+            )
             SELECT
                 u.entity_report_id,
                 u.unit_name,
@@ -345,7 +387,7 @@ def get_units_geo():
                 u.sasac_area_name,
                 COALESCE(SUM(CASE WHEN f.value_column = '本年累计' AND f.account_code = '01'
                              THEN f.value END), 0) AS total_assets
-            FROM finance_data.dim_unit_report u
+            FROM latest_unit u
             JOIN finance_data.dim_unit_geo g
                 ON u.entity_report_id = g.entity_report_id
             LEFT JOIN finance_data.fact_finance_data f
@@ -364,53 +406,151 @@ def get_units_geo():
 _vizro_db = _get_db_path()
 _vizro_con = duckdb.connect(_vizro_db, read_only=True)
 
-# 图1：资产负债表散点 — 货币资金(x) vs 资产总额(y)，颜色=log10(资产总额)
+# 图1：资产负债气泡散点 — 资产(x) vs 负债(y)，气泡=账户数
 _vizro_df1 = _vizro_con.execute("""
+    WITH asset_liability AS (
+        SELECT
+            f.entity_report_id,
+            f.period_id AS 期间,
+            COALESCE(ot.node_name, f.entity_report_id) AS 单位名称,
+            SUM(CASE WHEN sa.account_code = '01' THEN f.value END) AS 资产总额,
+            SUM(CASE WHEN sa.account_code = '02' THEN f.value END) AS 负债总额
+        FROM finance_data.fact_finance_data f
+        JOIN finance_data.dim_standard_account sa ON f.account_code = sa.account_code
+        JOIN finance_data.dim_report_category rc ON f.category_id = rc.category_id
+        LEFT JOIN finance_data.dim_organization_tree ot
+            ON f.entity_report_id = ot.entity_report_id AND ot.period = f.period_id
+        WHERE rc.category_name = '资产负债表'
+          AND sa.account_code IN ('01', '02')
+          AND f.value_column = '本年累计'
+        GROUP BY f.entity_report_id, 期间, ot.node_name
+        HAVING "资产总额" > 0 AND "负债总额" > 0
+    ),
+    account_count AS (
+        SELECT entity_report_id, COUNT(DISTINCT account_id) AS 账户数
+        FROM finance_data.dim_treasury_account
+        WHERE account_status = '存续'
+        GROUP BY entity_report_id
+    )
     SELECT
-        f.entity_report_id,
-        f.period_id AS 期间,
-        COALESCE(ot.node_name, f.entity_report_id) AS 单位名称,
-        SUM(CASE WHEN sa.account_name = '资产总额' THEN f.value END) AS 资产总额,
-        SUM(CASE WHEN sa.account_name = '货币资金' THEN f.value END) AS 货币资金
-    FROM finance_data.fact_finance_data f
-    JOIN finance_data.dim_standard_account sa ON f.account_code = sa.account_code
-    JOIN finance_data.dim_report_category rc ON f.category_id = rc.category_id
-    LEFT JOIN finance_data.dim_organization_tree ot
-        ON f.entity_report_id = ot.entity_report_id AND ot.period = f.period_id
-    WHERE rc.category_name = '资产负债表'
-      AND sa.account_name IN ('资产总额', '货币资金')
-      AND f.value_column = '本月数'
-    GROUP BY f.entity_report_id, f.period_id, ot.node_name
-    HAVING "资产总额" > 0 AND "货币资金" > 0
+        al.*,
+        COALESCE(ac.账户数, 0) AS 账户数,
+        al.负债总额 / NULLIF(al.资产总额, 0) AS 资产负债率
+    FROM asset_liability al
+    LEFT JOIN account_count ac ON al.entity_report_id = ac.entity_report_id
 """).fetchdf()
+
+# 过滤差额(1)和合并(9)单位
+_exclude_ids = _vizro_con.execute("""
+    SELECT DISTINCT entity_report_id FROM finance_data.dim_unit_report WHERE suffix IN ('1', '9')
+""").fetchdf()
+if not _exclude_ids.empty:
+    _exclude_set = set(_exclude_ids.iloc[:, 0])
+    _vizro_df1 = _vizro_df1[~_vizro_df1["entity_report_id"].isin(_exclude_set)]
+
+# 只保留每个单位最新期间的数据
+_vizro_df1 = _vizro_df1.sort_values("期间").groupby("entity_report_id").last().reset_index()
 
 _vizro_df1["log10_资产总额"] = np.log10(_vizro_df1["资产总额"])
+_vizro_df1["log10_负债总额"] = np.log10(_vizro_df1["负债总额"])
+_vizro_df1["log10_账户数"] = np.log10(_vizro_df1["账户数"].clip(lower=1))
+_vizro_df1["资产总额_万"] = _vizro_df1["资产总额"]
+_vizro_df1["负债总额_万"] = _vizro_df1["负债总额"]
 
-# 图2：账户折算金额分布，按金融机构着色
-_vizro_df2 = _vizro_con.execute("""
-    SELECT
-        fb.converted_amount AS 折算金额,
-        fb.period AS 期间,
-        COALESCE(ot.node_name, fb.entity_report_id) AS 单位名称,
-        COALESCE(NULLIF(ta.financial_institution, ''), ta.opening_institution) AS 金融机构
-    FROM finance_data.fact_treasury_account_balance fb
-    JOIN finance_data.dim_treasury_account ta ON fb.account_id = ta.account_id
-    LEFT JOIN finance_data.dim_organization_tree ot
-        ON fb.entity_report_id = ot.entity_report_id AND ot.period = fb.period
-    WHERE fb.converted_amount IS NOT NULL AND fb.converted_amount > 0
-      AND ta.financial_institution IS NOT NULL AND ta.financial_institution != ''
-""").fetchdf()
+import plotly.graph_objects as go
+
+@capture("graph")
+def asset_liability_bubble(data_frame=_vizro_df1):
+    """图A：资产负债气泡散点 — 资产(x) vs 负债(y)，气泡=账户数"""
+    df = data_frame
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=df["log10_资产总额"],
+        y=df["log10_负债总额"],
+        mode='markers',
+        marker=dict(
+            size=df["log10_账户数"].clip(lower=1) * 3,
+            color=df["资产负债率"].clip(0, 1),
+            colorscale='RdYlGn_r',
+            showscale=True,
+            colorbar=dict(title="资产负债率"),
+            cmin=0, cmax=1,
+            opacity=0.5,
+            line=dict(width=0.5, color='white'),
+        ),
+        text=(
+            df["单位名称"] + "<br>" +
+            "资产: " + df["资产总额"].apply(lambda x: f"{x:,.0f}万元") + "<br>" +
+            "负债: " + df["负债总额"].apply(lambda x: f"{x:,.0f}万元") + "<br>" +
+            "账户: " + df["账户数"].apply(lambda x: f"{x:,}个") + "<br>" +
+            "负债率: " + (df["资产负债率"] * 100).apply(lambda x: f"{x:.1f}%")
+        ),
+        hoverinfo='text',
+    ))
+    fig.update_layout(
+        title="资产负债结构气泡图（气泡大小=账户数）",
+        xaxis=dict(
+            title="资产总额（万元，对数尺度）",
+            tickvals=[0, 1, 2, 3, 4, 5, 6, 7],
+            ticktext=["1", "10", "100", "1千", "1万", "10万", "100万", "1000万"],
+        ),
+        yaxis=dict(
+            title="负债总额（万元，对数尺度）",
+            tickvals=[0, 1, 2, 3, 4, 5, 6, 7],
+            ticktext=["1", "10", "100", "1千", "1万", "10万", "100万", "1000万"],
+        ),
+    )
+    _max_val = max(df["log10_资产总额"].max(), df["log10_负债总额"].max())
+    _min_val = min(df["log10_资产总额"].min(), df["log10_负债总额"].min())
+    fig.add_trace(go.Scatter(
+        x=[_min_val, _max_val], y=[_min_val, _max_val],
+        mode='lines', line=dict(dash='dash', color='gray', width=1),
+        name='资产负债率=100%', showlegend=False,
+    ))
+    return fig
+
+@capture("graph")
+def leverage_vs_accounts(data_frame=_vizro_df1):
+    """图B：杠杆率 vs 账户规模（颜色=资产规模，正常区间 30-80%）"""
+    df = data_frame
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=df["资产负债率"] * 100,
+        y=df["账户数"],
+        mode='markers',
+        marker=dict(
+            size=8,
+            color=df["log10_资产总额"],
+            colorscale='Viridis',
+            showscale=True,
+            colorbar=dict(title="log10(资产)"),
+            opacity=0.5,
+            line=dict(width=0.5, color='white'),
+        ),
+        text=(
+            df["单位名称"] + "<br>" +
+            "负债率: " + (df["资产负债率"] * 100).apply(lambda x: f"{x:.1f}%") + "<br>" +
+            "账户: " + df["账户数"].apply(lambda x: f"{x:,}个")
+        ),
+        hoverinfo='text',
+    ))
+    fig.update_layout(
+        title="杠杆率 vs 账户规模（正常区间 30-80%）",
+        xaxis=dict(title="资产负债率 (%)", range=[0, 100]),
+        yaxis=dict(title="账户数量"),
+        shapes=[dict(
+            type='rect', x0=30, x1=80, y0=0, y1=df["账户数"].max() * 1.1,
+            fillcolor='green', opacity=0.05, line_width=0, layer='below',
+        )],
+    )
+    return fig
 
 _vizro_page_monitor = vm.Page(
     id="penetration-monitor",
     title="穿透监控大屏",
     components=[
-        vm.Graph(figure=px.scatter(_vizro_df1, x="货币资金", y="资产总额", color="log10_资产总额")),
-        vm.Graph(figure=px.histogram(_vizro_df2, x="折算金额", color="金融机构")),
-    ],
-    controls=[
-        vm.Filter(column="期间"),
-        vm.Filter(column="单位名称"),
+        vm.Graph(figure=asset_liability_bubble(data_frame=_vizro_df1)),
+        vm.Graph(figure=leverage_vs_accounts(data_frame=_vizro_df1)),
     ],
 )
 
@@ -457,6 +597,11 @@ except Exception as e:
 _vizro_geo_data = pl.DataFrame()
 try:
     _vizro_geo_data = _vizro_con.execute("""
+        WITH latest_unit AS (
+            SELECT DISTINCT ON (entity_report_id) *
+            FROM finance_data.dim_unit_report
+            ORDER BY entity_report_id, period DESC
+        )
         SELECT
             u.unit_name,
             u.province,
@@ -468,7 +613,7 @@ try:
                          THEN f.value END), 0) AS total_assets,
             COALESCE(SUM(CASE WHEN f.value_column = '本年累计' AND f.account_code = '54'
                          THEN f.value END), 0) AS total_revenue
-        FROM finance_data.dim_unit_report u
+        FROM latest_unit u
         JOIN finance_data.dim_unit_geo g
             ON u.entity_report_id = g.entity_report_id
         LEFT JOIN finance_data.fact_finance_data f
@@ -531,6 +676,11 @@ if _vizro_geo_data.shape[0] > 0:
             ),
             text=data_frame["hover_text"].to_list(),
             hoverinfo="text",
+        )
+        fig.update_layout(
+            xaxis=dict(showticklabels=False, showgrid=False, zeroline=False, visible=False),
+            yaxis=dict(showticklabels=False, showgrid=False, zeroline=False, visible=False),
+            margin=dict(l=0, r=0, t=30, b=0),
         )
         return fig
 

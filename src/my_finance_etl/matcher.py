@@ -1,128 +1,87 @@
-import json
-from typing import Dict, Any, Optional
+"""标准科目匹配器 — 基于 finance_mapping_standard.yaml 预计算映射表直接查表。"""
+import re
+import yaml
+from typing import Dict, Optional, List
+
+
+def _normalize_raw(text: str) -> str:
+    """规范化原始指标文本，消除空格差异。"""
+    return re.sub(r'\s+', ' ', text.strip())
 
 
 class StandardAccountMatcher:
-    """标准科目匹配器"""
+    """标准科目匹配器 — YAML 查表式匹配"""
 
-    def __init__(self, json_path: str, context_rules: list = None, report_type_names: dict = None):
-        with open(json_path, "r", encoding="utf-8") as f:
-            self.data = json.load(f)
-        self.context_rules = context_rules or []
+    def __init__(self, yaml_path: str, report_type_names: Optional[Dict] = None):
         self.report_type_names = report_type_names or {}
-        self.cn_to_en = {v: k for k, v in self.report_type_names.items()}
-        self.indexes = self._build_indexes()
+        with open(yaml_path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
 
-    def _build_indexes(self) -> Dict:
-        indexes = {
-            "code": {},
-            "path": {},
-            "name": {},
-            "alias": {},
-            "node": {},
+        # (清理后名称, 报表分区) → [mapping rows]
+        self._primary_index: Dict[tuple, List[Dict]] = {}
+        self._fallback_index: Dict[str, List[Dict]] = {}
+        # 规范化原始文本 → mapping row（精确消歧）
+        self._raw_index: Dict[str, Dict] = {}
+
+        for row in data.get("row_mappings", []):
+            if row.get("匹配状态") != "MATCHED":
+                continue
+            code = row.get("标准科目代码")
+            if code is None:
+                continue
+
+            clean_name = row.get("清理后名称", "")
+            category = row.get("报表分区", "")
+
+            key = (clean_name, category)
+            if key not in self._primary_index:
+                self._primary_index[key] = []
+            self._primary_index[key].append(row)
+
+            if clean_name not in self._fallback_index:
+                self._fallback_index[clean_name] = []
+            self._fallback_index[clean_name].append(row)
+
+            raw_key = _normalize_raw(row.get("原始项目", ""))
+            if raw_key and raw_key not in self._raw_index:
+                self._raw_index[raw_key] = row
+
+    def _build_result(self, yaml_row: Dict) -> Dict:
+        path = yaml_row.get("标准科目路径", "")
+        account_name = path.split(" > ")[-1] if path else yaml_row.get("清理后名称", "")
+
+        return {
+            "account_code": yaml_row["标准科目代码"],
+            "account_name": account_name,
+            "report_type": yaml_row["报表分区"],
+            "standard_path": path,
+            "data_type": yaml_row.get("数据类型", "TOTAL"),
         }
-        for report in self.data["reports"]:
-            for acc in report["accounts"]:
-                code = acc["account_code"]
-                # Store account with report_type included
-                acc_with_report_type = {**acc, "report_type": report["report_type"]}
-                if code not in indexes["node"]:
-                    indexes["node"][code] = []
-                indexes["node"][code].append(acc_with_report_type)
-                # 短横线编码索引
-                dash_code = acc.get("account_code_dash", code.replace(".", "-"))
-                indexes["code"][dash_code] = acc_with_report_type
-                # 标准路径索引
-                if "standard_path" in acc:
-                    indexes["path"][acc["standard_path"]] = acc_with_report_type
-                # 科目名称索引（纯 account_name，不含 alias）
-                account_name = acc.get("account_name", "")
-                if account_name:
-                    if account_name not in indexes["name"]:
-                        indexes["name"][account_name] = []
-                    indexes["name"][account_name].append(code)
-                # 别名索引（包括科目名称本身 + 额外别名）
-                if account_name:
-                    if account_name not in indexes["alias"]:
-                        indexes["alias"][account_name] = []
-                    indexes["alias"][account_name].append(code)
-
-                # 额外别名
-                for alias in acc.get("match_rules", {}).get("aliases", []):
-                    if alias not in indexes["alias"]:
-                        indexes["alias"][alias] = []
-                    indexes["alias"][alias].append(code)
-        return indexes
-
-    def _match_by_name(self, name: str, index_key: str, report_type: str) -> Optional[Dict]:
-        """在指定索引中按名称查找科目，用 report_type 消歧"""
-        candidate_codes = self.indexes.get(index_key, {}).get(name, [])
-        if not candidate_codes:
-            return None
-        # 收集所有候选科目（一个 code 可能对应多条不同 report_type 的记录）
-        candidates = []
-        for code in candidate_codes:
-            candidates.extend(self.indexes["node"].get(code, []))
-        if not candidates:
-            return None
-        if len(candidates) == 1:
-            return candidates[0]
-        # 多个同名科目 → 用 report_type 消歧
-        for acc in candidates:
-            if report_type and acc.get("report_type") == report_type:
-                return acc
-        # report_type 为空时 → 用 account_name 精确匹配
-        if not report_type and name:
-            for acc in candidates:
-                if acc.get("account_name") == name:
-                    return acc
-        # 仍无法消歧 → 返回第一个
-        return candidates[0]
 
     def match(self, row: Dict) -> Optional[Dict]:
-        """执行多级匹配，返回匹配到的科目节点"""
-        top_level_name = row.get("top_level_account_name", "")
+        # 0. 用原始文本精确查表（消除同名消歧依赖 full_path）
+        indicator_raw = row.get("indicator_raw", "")
+        if indicator_raw:
+            raw_key = _normalize_raw(indicator_raw)
+            yaml_row = self._raw_index.get(raw_key)
+            if yaml_row:
+                return self._build_result(yaml_row)
+
+        clean_name = row.get("indicator_clean", "")
+        if not clean_name:
+            return None
+
         report_category = row.get("report_category", "")
-        report_type = self.cn_to_en.get(report_category, "")
 
-        # 0a. 优先匹配 account_name（纯科目名）
-        if top_level_name:
-            result = self._match_by_name(top_level_name, "name", report_type)
-            if result:
-                return result
+        # 1. (名称 + 报表分区) 查主索引
+        key = (clean_name, report_category)
+        candidates = self._primary_index.get(key, [])
+        if candidates:
+            return self._build_result(candidates[0])
 
-        # 0b. 其次匹配 alias（含科目名 + 额外别名）
-        if top_level_name:
-            result = self._match_by_name(top_level_name, "alias", report_type)
-            if result:
-                return result
+        # 2. 仅按名称查回退索引
+        candidates = self._fallback_index.get(clean_name, [])
+        if candidates:
+            return self._build_result(candidates[0])
 
-        # 1. 精确路径匹配（直接路径匹配，跳过编号匹配）
-        full_path = row.get("full_path")
-        if full_path and full_path in self.indexes["path"]:
-            return self.indexes["path"][full_path]
-
-        # 2. 上下文规则匹配
-        clean_name = row.get("indicator_clean")
-        for rule in self.context_rules:
-            if rule["raw_indicator"] == clean_name:
-                if rule["parent_path_pattern"] in full_path:
-                    target_code = rule["target_account_code"]
-                    candidates = self.indexes["node"].get(target_code, [])
-                    if candidates:
-                        for acc in candidates:
-                            if report_type and acc.get("report_type") == report_type:
-                                return acc
-                        return candidates[0]
-
-        # 3. 别名+父级校验
-        candidate_codes = self.indexes["alias"].get(clean_name, [])
-        best_match = None
-        best_priority = -1
-        for code in candidate_codes:
-            for acc in self.indexes["node"].get(code, []):
-                priority = acc.get("match_rules", {}).get("match_priority", 0)
-                if priority > best_priority:
-                    best_priority = priority
-                    best_match = acc
-        return best_match
+        return None

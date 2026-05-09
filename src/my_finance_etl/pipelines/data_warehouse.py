@@ -47,7 +47,7 @@ def build_fact_table(
         pl.col("value_column"),
         pl.col("is_standardized").fill_null(False),
         pl.col("sheet_name").fill_null("").alias("source_file"),
-        pl.col("full_path").fill_null("").alias("raw_path"),
+        pl.col("full_path").fill_null("").str.replace_all(r'\s+', ' ').str.strip_chars().alias("raw_path"),
         pl.col("top_level_account_name").fill_null(""),
         pl.lit(etl_ts).alias("etl_created_at"),
     ).filter(

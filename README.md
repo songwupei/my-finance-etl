@@ -2,7 +2,7 @@
 
 基于 Kedro 数据管道框架的财务数据 ETL 与可视化平台，支持动态 Excel 文件扫描、指标标准化处理、组织树构建、资金账户解析、地理编码与可视化展示。
 
-**版本**: 1.1
+**版本**: 1.2
 
 ## 项目结构
 
@@ -256,6 +256,18 @@ tail -f logs/my_finance_etl.log
 ```
 
 ## 版本历史
+
+### v1.2 (2026-05-09)
+
+- **匹配引擎重构为 YAML 查表式匹配** 🔥: `matcher.py` 完全重写 — 从 JSON 标准科目库多级匹配（名称→别名→路径→上下文消歧）切换为基于 `finance_mapping_standard.yaml` 的预计算三级索引查表，彻底消除跨报表类别污染问题
+- **指标映射标准全面修正**: `finance_mapping_standard.yaml` 165+ 处修正 — 汇总项代码精确化（`01`→`01.01`、`02`→`02.01`、`02`→`02.10` 等）、资产/负债类别混淆修复 8 处（应收票据→应付票据、应收账款→预付款项/合同资产等）、子项数据类型 `TOTAL`→`SUB_DETAIL` 修正 40+ 处、层级路径补齐
+- **离线科目映射脚本**: 新增 `scripts/run_mapping_standards.py` — 从 Excel 模板 + `standard_accounts.json` 自动生成完整 YAML 映射表，支持编号层级检测、父级约束匹配、乱序行定位
+- **Vizro 穿透监控大屏重设计**: 货币资金散点 → **资产负债气泡散点**（资产 vs 负债，气泡=账户数，颜色=资产负债率）+ **杠杆率 vs 账户规模散点**（30-80% 正常区间高亮）；排除差额口径 (suffix=1) 和合并口径 (suffix=9) 单位；单位维度只保留最新期间数据；中国地图 UI 优化
+- **Flask API 匹配验证增强**: `/api/node_data` 改用 YAML 查表 + 标准科目代码交叉验证，替代不可靠的文本清洗比较；`/api/units_geo` 新增 `DISTINCT ON` 最新期间过滤
+- **数据仓库 schema 扩展**: `duckdb_data_warehouse.py` 维度表注册表新增 `dim_unit_geo`，支持地理编码表关联
+- **Parser 重构文档化**: `parser.py` 标注为遗留代码，新增 `load_yaml_mapping()` 辅助函数，活跃解析器指向 `polars_optimizer.py`
+- **配置简化**: `indicator_mapping.yml` 标准科目源从 JSON 切换到 YAML，移除 `context_rules` 上下文消歧规则块
+- **数据质量增强**: `data_warehouse.py` 事实表 `raw_path` 增加空格规范化（`\s+`→单空格）
 
 ### v1.1 (2026-05-09)
 

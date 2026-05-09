@@ -150,6 +150,7 @@ class DuckDBDataWarehouse:
             ("dim_period", "period_id"),
             ("dim_standard_account", "account_code"),
             ("dim_organization_tree", "node_id"),
+            ("dim_unit_geo", "entity_report_id"),
         ]
 
         # 事实表配置

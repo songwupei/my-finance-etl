@@ -25,20 +25,19 @@ def standardize_report_data(
     # Load configuration
     indicator_mapping_path = parameters.get("indicator_mapping_path", "conf/base/indicator_mapping.yml")
 
-    # Load context rules, report type mapping, and standard accounts path from indicator_mapping.yml
+    # Load report type mapping and standard accounts path from indicator_mapping.yml
     import yaml
     import os
     with open(indicator_mapping_path, "r", encoding="utf-8") as f:
         indicator_mapping = yaml.safe_load(f)
-    context_rules = indicator_mapping.get("context_rules", [])
     report_type_names = indicator_mapping.get("report_type_names", {})
 
     # Get standard accounts path from indicator mapping
     standard_accounts_source = indicator_mapping.get("standard_accounts_source", {})
-    standard_accounts_path = standard_accounts_source.get("path", "conf/base/standard_accounts.json")
+    standard_accounts_path = standard_accounts_source.get("path", "conf/base/finance_mapping_standard.yaml")
 
-    # Initialize matcher
-    matcher = StandardAccountMatcher(standard_accounts_path, context_rules, report_type_names)
+    # Initialize matcher (YAML-based, no more context_rules)
+    matcher = StandardAccountMatcher(standard_accounts_path, report_type_names)
 
     # Process each row
     records = []
@@ -68,10 +67,8 @@ def standardize_report_data(
         }
 
         if matched_account:
-            # Get report_type from matched account, map to Chinese category name
-            report_type = matched_account.get("report_type", "unknown")
-            category = report_type_names.get(report_type, report_type)
-            # 交叉验证：匹配结果的报表类别必须与 parser 章节检测一致
+            # report_type 已是中文（来自 YAML 报表分区），直接与 parser 检测的类别比较
+            category = matched_account.get("report_type", "unknown")
             parser_category = row.get("report_category")
             if parser_category and category != parser_category:
                 matched_account = None  # 跨类别污染，丢弃此匹配
@@ -209,9 +206,7 @@ def build_dimension_tables(
 
     dim_period = pl.DataFrame(dim_period_records)
 
-    # dim_standard_account (from standard accounts JSON)
-    import json
-
+    # dim_standard_account (from finance_mapping_standard.yaml)
     # Load configuration from indicator_mapping.yml
     indicator_mapping_path = parameters.get("indicator_mapping_path", "conf/base/indicator_mapping.yml")
     with open(indicator_mapping_path, "r", encoding="utf-8") as f:
@@ -219,30 +214,39 @@ def build_dimension_tables(
 
     # Get standard accounts path from indicator mapping
     standard_accounts_source = indicator_mapping.get("standard_accounts_source", {})
-    standard_accounts_path = standard_accounts_source.get("path", "conf/base/standard_accounts.json")
+    standard_accounts_path = standard_accounts_source.get("path", "conf/base/finance_mapping_standard.yaml")
 
-    # Load standard accounts
+    # Load YAML mapping
     with open(standard_accounts_path, "r", encoding="utf-8") as f:
-        standard_accounts = json.load(f)
-
-    # Load report type mapping
-    report_type_names = indicator_mapping.get("report_type_names", {})
+        mapping_data = yaml.safe_load(f)
 
     dim_standard_account_records = []
-    for sort_idx, report in enumerate(standard_accounts["reports"]):
-        for acc in report["accounts"]:
-            # Map report_type to Chinese category name
-            category = report_type_names.get(report["report_type"], report["report_type"])
-            record = {
-                "account_code": acc["account_code"],
-                "account_name": acc["account_name"],
-                "report_category": category,
-                "account_code_dash": acc.get("account_code_dash", acc["account_code"].replace(".", "-")),
-                "standard_path": acc.get("standard_path"),
-                "match_priority": acc.get("match_rules", {}).get("match_priority", 0),
-                "sort_order": sort_idx,
-            }
-            dim_standard_account_records.append(record)
+    seen = set()
+    for sort_idx, row in enumerate(mapping_data.get("row_mappings", [])):
+        if row.get("匹配状态") != "MATCHED":
+            continue
+        code = row.get("标准科目代码")
+        if code is None:
+            continue
+        category = row.get("报表分区", "")
+        key = (code, category)
+        if key in seen:
+            continue  # 去重：多个原始指标可能映射到同一标准科目
+        seen.add(key)
+
+        path = row.get("标准科目路径", "")
+        account_name = path.split(" > ")[-1] if path else row.get("清理后名称", "")
+
+        record = {
+            "account_code": code,
+            "account_name": account_name,
+            "report_category": category,
+            "account_code_dash": code.replace(".", "-"),
+            "standard_path": path,
+            "match_priority": 100,
+            "sort_order": sort_idx,
+        }
+        dim_standard_account_records.append(record)
 
     dim_standard_account = pl.DataFrame(dim_standard_account_records)
 

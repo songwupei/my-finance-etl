@@ -1,4 +1,13 @@
+"""
+FinanceExcelParser — 遗留代码，已被 PolarsExcelProcessor (polars_optimizer.py) 取代。
+活跃的解析器使用相同的名称清洗逻辑，并将结果送入基于 YAML 的匹配器。
+
+YAML 映射支持见：conf/base/finance_mapping_standard.yaml
+活跃解析器见：my_finance_etl.polars_optimizer.PolarsExcelProcessor
+"""
+
 import re
+import os
 import pandas as pd
 import yaml
 from typing import Dict, List, Any, Optional, Tuple
@@ -227,3 +236,49 @@ class FinanceExcelParser:
         if override:
             rules.update({k: v for k, v in override.items() if k in rules})
         return rules
+
+
+def load_yaml_mapping(yaml_path: Optional[str] = None) -> Dict[str, Any]:
+    """加载 finance_mapping_standard.yaml 并返回结构化查找数据。
+
+    返回 dict 包含:
+      - 'metadata': 映射元数据
+      - 'by_clean_name': 清理后名称 → [映射行列表]
+      - 'by_code': 标准科目代码 → 映射行
+      - 'matched': MATCHED 行列表
+      - 'unmatched': UNMATCHED 行列表
+    """
+    if yaml_path is None:
+        yaml_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+            "conf", "base", "finance_mapping_standard.yaml",
+        )
+
+    with open(yaml_path, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+
+    by_clean_name: Dict[str, List[Dict]] = {}
+    by_code: Dict[str, Dict] = {}
+    matched: List[Dict] = []
+    unmatched: List[Dict] = []
+
+    for row in data.get("row_mappings", []):
+        if row.get("匹配状态") == "MATCHED":
+            matched.append(row)
+            name = row.get("清理后名称", "")
+            code = row.get("标准科目代码")
+            if name not in by_clean_name:
+                by_clean_name[name] = []
+            by_clean_name[name].append(row)
+            if code and code not in by_code:
+                by_code[code] = row
+        else:
+            unmatched.append(row)
+
+    return {
+        "metadata": data.get("metadata", {}),
+        "by_clean_name": by_clean_name,
+        "by_code": by_code,
+        "matched": matched,
+        "unmatched": unmatched,
+    }
