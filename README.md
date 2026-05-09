@@ -168,7 +168,7 @@ python flask_app.py
 | `dim_organization_tree` | 组织架构树 | 2830 |
 | `dim_treasury_account` | 资金账户 | 27085 |
 | `dim_treasury_account_type` | 账户类型 | 34 |
-| `dim_unit_geo` | 单位地理坐标 | — |
+| `dim_unit_geo` | 单位地理坐标 | 1419 |
 
 ### 事实表
 
@@ -189,7 +189,7 @@ python flask_app.py
 | 组件 | 技术 |
 |---|---|
 | ETL 框架 | Kedro ≥ 0.19.0 |
-| 数据处理 | Pandas, Polars |
+| 数据处理 | Polars（Pandas 仅遗留 parser 兼容层） |
 | 数据仓库 | DuckDB |
 | 可视化 | Flask, jsTree, Vizro, Plotly |
 | 报告生成 | Quarto |
