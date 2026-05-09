@@ -1,6 +1,5 @@
 """司库数据 Excel 列映射器 — 对已加载的 DataFrame 做列名标准化。"""
 import polars as pl
-import logging
 from typing import Dict
 
 

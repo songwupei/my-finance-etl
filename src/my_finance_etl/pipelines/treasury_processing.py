@@ -9,19 +9,33 @@ from kedro.framework.project import settings
 
 
 def _build_entity_lookup(dim_org_tree: pl.DataFrame, manual_map: dict) -> dict:
-    """预建 org_code → entity_report_id 查找表（避免逐行 filter）。"""
+    """预建 org_code → entity_report_id 查找表。
+
+    司库账户挂载规则：
+      - 不挂载 suffix=9（合并口径），不挂载 suffix=1（差额口径）
+      - 优先挂载 suffix=0（本部口径），其次挂载其他非 1/9 口径
+      - 一个单位只映射到一个 entity_report_id，suffix=0 优先于 suffix=3/4 等
+    """
     lookup = dict(manual_map)
+
+    # 第一遍：suffix=0（本部口径）优先
     for row in dim_org_tree.iter_rows(named=True):
         code = row.get("unit_code")
+        suffix = row.get("suffix", "")
         if not code or code in lookup:
             continue
-        suffix = row.get("suffix", "")
-        # 优先 suffix=0 > 其他(排除1,9) > 9
-        if suffix not in ("1", "9"):
-            if suffix == "0" or code not in lookup:
-                lookup[code] = row["entity_report_id"]
-        elif suffix == "9" and code not in lookup:
+        if suffix == "0":
             lookup[code] = row["entity_report_id"]
+
+    # 第二遍：suffix=0 没命中的 code，用其他非 1/9 口径兜底
+    for row in dim_org_tree.iter_rows(named=True):
+        code = row.get("unit_code")
+        suffix = row.get("suffix", "")
+        if not code or code in lookup:
+            continue
+        if suffix not in ("1", "9"):
+            lookup[code] = row["entity_report_id"]
+
     return lookup
 
 

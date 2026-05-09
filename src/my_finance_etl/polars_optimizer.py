@@ -179,8 +179,10 @@ class PolarsExcelProcessor:
                         base_info.update(metadata)
                         # 剔除必填字段为空的文件
                         unit_code_val = base_info.get("unit_code", "").strip()
-                        parent_code_val = base_info.get("parent_code", "").strip()
-                        if not unit_code_val or not parent_code_val:
+                        parent_code_val = base_info.get("parent_code", "#").strip()
+                        # if not unit_code_val or not parent_code_val:
+                        # 如果本级代码为空，直接退出
+                        if not unit_code_val:
                             logger.debug(f"跳过文件 (必填字段为空 unit_code={unit_code_val!r} parent_code={parent_code_val!r}): {filepath}")
                             return None, None
                         # 选填字段为空时填"无"

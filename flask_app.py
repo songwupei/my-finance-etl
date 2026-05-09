@@ -437,14 +437,22 @@ try:
     from my_finance_etl.geocoder import run as run_geocoder
     if not _geo_parquet.exists():
         run_geocoder()
-    elif not _table_exists(_vizro_con, "finance_data", "dim_unit_geo"):
-        import polars as pl
-        geo_df = pl.read_parquet(str(_geo_parquet))
-        _vizro_con.register("_geo", geo_df.to_pandas())
-        _vizro_con.execute("CREATE TABLE IF NOT EXISTS finance_data.dim_unit_geo AS SELECT * FROM _geo")
-        print(f"[flask] Synced {geo_df.height} geo rows to DuckDB from parquet")
-except Exception:
-    pass
+
+    # 同步 parquet → DuckDB（_vizro_con 是只读的，得用独立可写连接）
+    _sync_conn = duckdb.connect(_vizro_db)  # 可写连接
+    try:
+        if not _table_exists(_sync_conn, "finance_data", "dim_unit_geo"):
+            import polars as pl
+            geo_df = pl.read_parquet(str(_geo_parquet))
+            _sync_conn.register("_geo", geo_df.to_pandas())
+            _sync_conn.execute(
+                "CREATE TABLE IF NOT EXISTS finance_data.dim_unit_geo AS SELECT * FROM _geo"
+            )
+            print(f"[flask] Synced {geo_df.height} geo rows to DuckDB from parquet")
+    finally:
+        _sync_conn.close()
+except Exception as e:
+    print(f"[flask] Geo sync failed: {e}")
 
 _vizro_geo_data = pl.DataFrame()
 try:

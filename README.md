@@ -2,7 +2,7 @@
 
 基于 Kedro 数据管道框架的财务数据 ETL 与可视化平台，支持动态 Excel 文件扫描、指标标准化处理、组织树构建、资金账户解析、地理编码与可视化展示。
 
-**版本**: 1.0
+**版本**: 1.1
 
 ## 项目结构
 
@@ -16,8 +16,9 @@ skdata-etl/
 │   │   ├── finance_loader.yml     # Excel 解析规则
 │   │   ├── treasury_loader.yml    # 资金账户解析规则
 │   │   ├── indicator_mapping.yml  # 指标标准化配置
-│   │   ├── standard_accounts.json # 标准科目库 (v1.0)
-│   │   └── standard_accountsv1.0.json
+│   │   ├── standard_accounts.json # 标准科目库 (v2.0, 2018年版企业财务报表格式)
+│   │   ├── standard_accountsv1.0.json
+│   │   └── finance_mapping_standard.yaml # 财务指标映射标准配置
 │   └── local/
 │       └── credentials.yml        # 数据库凭证
 ├── src/my_finance_etl/            # 源码
@@ -65,11 +66,12 @@ skdata-etl/
 
 1. **动态 Excel 加载**: 自动扫描月度文件夹，根据正则表达式提取元数据
 2. **智能解析**: 自动识别基本信息工作表和报表工作表，支持章节命名空间隔离
-3. **指标标准化**: 基于标准科目库的顶层科目名称匹配，支持上下文消歧
-4. **组织树构建**: 自动构建集团多层级组织架构树 (2830 个节点)
-5. **资金账户解析**: 解析银行账户信息，构建资金账户维度表 (27085 个账户)
+3. **指标标准化**: 基于标准科目库（v2.0，2018年版企业财务报表格式）的层级路径匹配，支持上下文消歧
+4. **组织树构建**: 自动构建集团多层级组织架构树 (2830 个节点)，支持本部口径 (suffix=0) 优先
+5. **资金账户解析**: 解析银行账户信息，构建资金账户维度表 (27085 个账户)，优先匹配本部口径单位
 6. **星型数据模型**: 生成维度表和事实表，存储在 DuckDB (`finance_warehouse.duckdb`)
-7. **Polars 加速**: 针对 1500+ Excel 文件的并行处理优化
+7. **Polars 加速**: 针对 1500+ Excel 文件的并行处理优化，parent_code 选填化处理
+8. **自动地理编码**: 在维度表构建完成后，通过 Kedro 钩子自动执行高德地理编码
 
 ### 可视化服务
 
@@ -114,7 +116,9 @@ data/01_raw/
 - `conf/base/parameters.yml`: 设置集团根代码等参数
 - `conf/base/finance_loader.yml`: 调整 Excel 解析规则
 - `conf/base/indicator_mapping.yml`: 配置标准科目映射规则
-- `conf/base/standard_accounts.json`: 维护标准科目库
+- `conf/base/standard_accounts.json`: 维护标准科目库 (v2.0, 2018年版企业财务报表格式层级结构)
+- `conf/base/finance_mapping_standard.yaml`: 财务指标映射标准配置
+- `conf/base/hooks.yml`: Kedro 钩子配置 (自动触发地理编码等)
 
 ### 4. 运行 ETL 管道
 
@@ -158,8 +162,8 @@ python flask_app.py
 |---|---|---|
 | `dim_period` | 会计期间 | 2 |
 | `dim_caliber` | 口径 | 1 |
-| `dim_report_category` | 报表类别 (资产负债表/利润表/现金流量表) | 3 |
-| `dim_standard_account` | 标准科目树 (含层级路径) | 124 |
+| `dim_report_category` | 报表类别 (资产负债表/利润表/现金流量表/所有者权益变动表) | 4 |
+| `dim_standard_account` | 标准科目树 (含层级路径, v2.0) | 151 |
 | `dim_unit_report` | 报送单位 | 2830 |
 | `dim_organization_tree` | 组织架构树 | 2830 |
 | `dim_treasury_account` | 资金账户 | 27085 |
@@ -250,6 +254,23 @@ kedro registry list    # 查看所有已注册管道
 ```bash
 tail -f logs/my_finance_etl.log
 ```
+
+## 版本历史
+
+### v1.1 (2026-05-09)
+
+- **标准科目库升级**: `standard_accounts.json` 升级至 v2.0，基于 2018 年版一般企业财务报表格式重构三层级科目树 (151 个科目，新增所有者权益变动表)，增强 `standard_path` 层级路径和结构化 `match_rules`
+- **新增配置**: `finance_mapping_standard.yaml` 财务指标映射标准配置
+- **自动地理编码**: 启用 `hooks.yml` 中的 `after_nodes` 钩子，维度表构建后自动执行高德地理编码
+- **本部口径优先**: `treasury_processing.py` 资金账户实体匹配改为 suffix=0（本部口径）优先，排除合并口径 (suffix=9) 和差额口径 (suffix=1)
+- **parent_code 选填**: `polars_optimizer.py` 放宽必填字段校验，parent_code 为空不再拒绝文件
+- **组织树后处理文档化**: `tree_builder.py` 将自引用/父节点失踪/根节点口径统一处理逻辑暂时禁用，添加详细边界情况注释，待基础数据质量提升后重新启用
+- **Flask 写入修复**: `flask_app.py` 中 geo parquet 同步 DuckDB 改用独立可写连接，避免只读连接写入报错
+- **代码清理**: `treasury_parser.py` 移除未使用的 `logging` import
+
+### v1.0 (2026-04)
+
+- 首个完整版本：财务 ETL、DuckDB 星型模型、Flask 可视化、Vizro 仪表板
 
 ## 许可证
 

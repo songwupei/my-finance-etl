@@ -1,12 +1,12 @@
 {
   "version": "2.0",
-  "created": "2026-04-18",
-  "description": "集团标准财务科目知识库 - 增强版，支持多维度匹配",
+  "created": "2026-05-09",
+  "description": "集团标准财务科目知识库 — 基于2018年版一般企业财务报表格式，支持多维度匹配与层级结构",
   "reports": [
     {
       "report_type": "balance_sheet",
       "report_name": "资产负债表",
-      "description": "资产负债表科目列表",
+      "description": "资产负债表科目（2018年版标准层级结构）",
       "accounts": [
         {
           "account_code": "01",
@@ -19,8 +19,14 @@
           "standard_path": "资产总额",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["资产合计", "资产总计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "资产合计",
+              "资产总计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -36,7 +42,9 @@
           "standard_path": "资产总额 > 流动资产合计",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["流动资产总计"],
+            "aliases": [
+              "流动资产总计"
+            ],
             "ignore_prefix": [],
             "exact_match_only": false,
             "match_priority": 100
@@ -53,8 +61,14 @@
           "standard_path": "资产总额 > 流动资产合计 > 货币资金",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["现金", "银行存款"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "现金",
+              "银行存款"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -71,7 +85,10 @@
           "report_category": "资产负债表",
           "match_rules": {
             "aliases": [],
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -88,7 +105,10 @@
           "report_category": "资产负债表",
           "match_rules": {
             "aliases": [],
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -105,7 +125,10 @@
           "report_category": "资产负债表",
           "match_rules": {
             "aliases": [],
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -122,7 +145,10 @@
           "report_category": "资产负债表",
           "match_rules": {
             "aliases": [],
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -138,8 +164,14 @@
           "standard_path": "资产总额 > 流动资产合计 > 应收账款",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["应收款项", "应收款"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "应收款项",
+              "应收款"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -155,9 +187,14 @@
           "standard_path": "资产总额 > 流动资产合计 > 应收账款 > 1年以内应收账款",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["1年以内"],
+            "aliases": [
+              "1年以内"
+            ],
             "scope_parent_code": "01.03",
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 90
           }
@@ -173,9 +210,14 @@
           "standard_path": "资产总额 > 流动资产合计 > 应收账款 > 1-2年应收账款",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["1-2年"],
+            "aliases": [
+              "1-2年"
+            ],
             "scope_parent_code": "01.03",
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 90
           }
@@ -191,9 +233,14 @@
           "standard_path": "资产总额 > 流动资产合计 > 应收账款 > 2-3年应收账款",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["2-3年"],
+            "aliases": [
+              "2-3年"
+            ],
             "scope_parent_code": "01.03",
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 90
           }
@@ -209,9 +256,14 @@
           "standard_path": "资产总额 > 流动资产合计 > 应收账款 > 3年以上应收账款",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["3年以上"],
+            "aliases": [
+              "3年以上"
+            ],
             "scope_parent_code": "01.03",
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 90
           }
@@ -227,9 +279,14 @@
           "standard_path": "资产总额 > 流动资产合计 > 应收账款 > 集团内应收账款",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["集团内"],
+            "aliases": [
+              "集团内"
+            ],
             "scope_parent_code": "01.03",
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 80
           }
@@ -245,9 +302,14 @@
           "standard_path": "资产总额 > 流动资产合计 > 应收账款 > 集团外应收账款",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["集团外"],
+            "aliases": [
+              "集团外"
+            ],
             "scope_parent_code": "01.03",
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 80
           }
@@ -263,8 +325,13 @@
           "standard_path": "资产总额 > 流动资产合计 > 应收票据",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["票据"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "票据"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -281,7 +348,10 @@
           "report_category": "资产负债表",
           "match_rules": {
             "aliases": [],
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -298,7 +368,10 @@
           "report_category": "资产负债表",
           "match_rules": {
             "aliases": [],
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -314,9 +387,14 @@
           "standard_path": "资产总额 > 流动资产合计 > 应收票据 > 集团内应收票据",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["集团内"],
+            "aliases": [
+              "集团内"
+            ],
             "scope_parent_code": "01.04",
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 80
           }
@@ -332,9 +410,14 @@
           "standard_path": "资产总额 > 流动资产合计 > 应收票据 > 集团外应收票据",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["集团外"],
+            "aliases": [
+              "集团外"
+            ],
             "scope_parent_code": "01.04",
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 80
           }
@@ -350,8 +433,13 @@
           "standard_path": "资产总额 > 流动资产合计 > 其他应收款",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["其他应收"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "其他应收"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -367,8 +455,13 @@
           "standard_path": "资产总额 > 流动资产合计 > 存货",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["库存"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "库存"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -384,8 +477,13 @@
           "standard_path": "资产总额 > 流动资产合计 > 一年内到期的非流动资产",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["一年内到期非流动资产"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "一年内到期非流动资产"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -401,8 +499,13 @@
           "standard_path": "资产总额 > 流动资产合计 > 其他流动资产",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["其他流动"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "其他流动"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -418,7 +521,9 @@
           "standard_path": "资产总额 > 非流动资产合计",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["非流动资产总计"],
+            "aliases": [
+              "非流动资产总计"
+            ],
             "ignore_prefix": [],
             "exact_match_only": false,
             "match_priority": 100
@@ -435,8 +540,13 @@
           "standard_path": "资产总额 > 流动资产合计 > 交易性金融资产",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["交易性金融资产合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "交易性金融资产合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -452,8 +562,13 @@
           "standard_path": "资产总额 > 流动资产合计 > 衍生金融资产",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["衍生金融资产合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "衍生金融资产合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -469,8 +584,13 @@
           "standard_path": "资产总额 > 流动资产合计 > 应收款项融资",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["应收款项融资合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "应收款项融资合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -486,8 +606,13 @@
           "standard_path": "资产总额 > 流动资产合计 > 预付款项",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["预付款项合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "预付款项合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -503,8 +628,13 @@
           "standard_path": "资产总额 > 流动资产合计 > 合同资产",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["合同资产合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "合同资产合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -520,8 +650,13 @@
           "standard_path": "资产总额 > 非流动资产合计 > 债权投资",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["债权投资合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "债权投资合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -537,8 +672,13 @@
           "standard_path": "资产总额 > 非流动资产合计 > 其他债权投资",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["其他债权投资合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "其他债权投资合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -554,8 +694,13 @@
           "standard_path": "资产总额 > 非流动资产合计 > 长期应收款",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["长期应收款合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "长期应收款合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -571,8 +716,13 @@
           "standard_path": "资产总额 > 非流动资产合计 > 其他非流动金融资产",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["其他非流动金融资产合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "其他非流动金融资产合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -588,8 +738,13 @@
           "standard_path": "资产总额 > 非流动资产合计 > 其他权益工具投资",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["其他权益工具投资合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "其他权益工具投资合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -606,7 +761,10 @@
           "report_category": "资产负债表",
           "match_rules": {
             "aliases": [],
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -623,7 +781,10 @@
           "report_category": "资产负债表",
           "match_rules": {
             "aliases": [],
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -640,7 +801,10 @@
           "report_category": "资产负债表",
           "match_rules": {
             "aliases": [],
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": true,
             "match_priority": 10
           }
@@ -656,8 +820,14 @@
           "standard_path": "负债总额",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["负债合计", "负债总计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "负债合计",
+              "负债总计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -673,7 +843,9 @@
           "standard_path": "负债总额 > 流动负债合计",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["流动负债总计"],
+            "aliases": [
+              "流动负债总计"
+            ],
             "ignore_prefix": [],
             "exact_match_only": false,
             "match_priority": 100
@@ -690,8 +862,13 @@
           "standard_path": "负债总额 > 流动负债合计 > 短期借款",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["短期借款合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "短期借款合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -707,8 +884,13 @@
           "standard_path": "负债总额 > 流动负债合计 > 应付票据",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["应付票据合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "应付票据合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -724,8 +906,13 @@
           "standard_path": "负债总额 > 流动负债合计 > 应付账款",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["应付账款合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "应付账款合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -741,8 +928,13 @@
           "standard_path": "负债总额 > 流动负债合计 > 预收款项",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["预收账款"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "预收账款"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -758,8 +950,13 @@
           "standard_path": "负债总额 > 流动负债合计 > 一年内到期的非流动负债",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["一年内到期非流动负债"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "一年内到期非流动负债"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -775,8 +972,13 @@
           "standard_path": "负债总额 > 长期借款",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["长期借款合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "长期借款合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -792,8 +994,13 @@
           "standard_path": "负债总额 > 应付债券",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["应付债券合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "应付债券合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -809,8 +1016,13 @@
           "standard_path": "负债总额 > 长期应付款",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["长期应付款合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "长期应付款合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -826,7 +1038,9 @@
           "standard_path": "负债总额 > 非流动负债合计",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["非流动负债总计"],
+            "aliases": [
+              "非流动负债总计"
+            ],
             "ignore_prefix": [],
             "exact_match_only": false,
             "match_priority": 100
@@ -843,8 +1057,13 @@
           "standard_path": "负债总额 > 非流动负债合计 > 租赁负债",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["租赁负债合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "租赁负债合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -860,8 +1079,13 @@
           "standard_path": "负债总额 > 流动负债合计 > 交易性金融负债",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["交易性金融负债合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "交易性金融负债合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -877,8 +1101,13 @@
           "standard_path": "负债总额 > 流动负债合计 > 衍生金融负债",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["衍生金融负债合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "衍生金融负债合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -894,8 +1123,13 @@
           "standard_path": "负债总额 > 流动负债合计 > 合同负债",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["合同负债合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "合同负债合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -911,8 +1145,13 @@
           "standard_path": "负债总额 > 流动负债合计 > 其他应付款",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["其他应付款合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "其他应付款合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -928,8 +1167,13 @@
           "standard_path": "负债总额 > 流动负债合计 > 其他流动负债",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["其他流动负债合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "其他流动负债合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -945,8 +1189,13 @@
           "standard_path": "负债总额 > 带息负债总额",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["带息负债总额合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "带息负债总额合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -962,8 +1211,14 @@
           "standard_path": "负债总额 > 流动负债合计 > 短期融资券",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["短期融资券（含超短融）", "超短融"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "短期融资券（含超短融）",
+              "超短融"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -980,7 +1235,10 @@
           "report_category": "资产负债表",
           "match_rules": {
             "aliases": [],
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -997,7 +1255,10 @@
           "report_category": "资产负债表",
           "match_rules": {
             "aliases": [],
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1014,7 +1275,10 @@
           "report_category": "资产负债表",
           "match_rules": {
             "aliases": [],
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1031,7 +1295,10 @@
           "report_category": "资产负债表",
           "match_rules": {
             "aliases": [],
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1048,7 +1315,10 @@
           "report_category": "资产负债表",
           "match_rules": {
             "aliases": [],
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1065,7 +1335,10 @@
           "report_category": "资产负债表",
           "match_rules": {
             "aliases": [],
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1082,7 +1355,10 @@
           "report_category": "资产负债表",
           "match_rules": {
             "aliases": [],
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1098,8 +1374,15 @@
           "standard_path": "所有者权益合计",
           "report_category": "资产负债表",
           "match_rules": {
-            "aliases": ["所有者权益总额", "权益合计", "所有者权益总计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "所有者权益总额",
+              "权益合计",
+              "所有者权益总计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1109,7 +1392,7 @@
     {
       "report_type": "income_statement",
       "report_name": "利润表",
-      "description": "利润表科目列表",
+      "description": "利润表科目（2018年版标准层级结构）",
       "accounts": [
         {
           "account_code": "01",
@@ -1117,13 +1400,418 @@
           "account_name": "营业收入",
           "parent_code": "",
           "level": 1,
-          "is_summary": false,
-          "is_leaf_for_fact": true,
+          "is_summary": true,
+          "is_leaf_for_fact": false,
           "standard_path": "营业收入",
           "report_category": "利润表",
           "match_rules": {
-            "aliases": ["主营业务收入", "销售收入"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "主营业务收入",
+              "销售收入"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "01.01",
+          "account_code_dash": "01-01",
+          "account_name": "营业成本",
+          "parent_code": "01",
+          "level": 2,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "营业收入 > 营业成本",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "主营业务成本",
+              "销售成本"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "01.02",
+          "account_code_dash": "01-02",
+          "account_name": "税金及附加",
+          "parent_code": "01",
+          "level": 2,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "营业收入 > 税金及附加",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "营业税金及附加",
+              "主营业务税金及附加"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "01.03",
+          "account_code_dash": "01-03",
+          "account_name": "销售费用",
+          "parent_code": "01",
+          "level": 2,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "营业收入 > 销售费用",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "营业费用"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "01.04",
+          "account_code_dash": "01-04",
+          "account_name": "管理费用",
+          "parent_code": "01",
+          "level": 2,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "营业收入 > 管理费用",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "管理成本"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "01.05",
+          "account_code_dash": "01-05",
+          "account_name": "财务费用",
+          "parent_code": "01",
+          "level": 2,
+          "is_summary": false,
+          "is_leaf_for_fact": false,
+          "standard_path": "营业收入 > 财务费用",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "融资费用"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "01.05.01",
+          "account_code_dash": "01-05-01",
+          "account_name": "利息费用",
+          "parent_code": "01.05",
+          "level": 3,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "营业收入 > 财务费用 > 利息费用",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "利息支出"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "01.05.02",
+          "account_code_dash": "01-05-02",
+          "account_name": "利息收入",
+          "parent_code": "01.05",
+          "level": 3,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "营业收入 > 财务费用 > 利息收入",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "利息收益"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "01.05.03",
+          "account_code_dash": "01-05-03",
+          "account_name": "汇兑净损失",
+          "parent_code": "01.05",
+          "level": 3,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "营业收入 > 财务费用 > 汇兑净损失",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "汇兑净损失（净收益以“-”号填列）",
+              "汇兑损益"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "01.05.04",
+          "account_code_dash": "01-05-04",
+          "account_name": "金融机构手续费",
+          "parent_code": "01.05",
+          "level": 3,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "营业收入 > 财务费用 > 金融机构手续费",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "银行手续费"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "01.05.05",
+          "account_code_dash": "01-05-05",
+          "account_name": "票据贴现利息",
+          "parent_code": "01.05",
+          "level": 3,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "营业收入 > 财务费用 > 票据贴现利息",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "贴现利息"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "01.06",
+          "account_code_dash": "01-06",
+          "account_name": "资产减值损失",
+          "parent_code": "01",
+          "level": 2,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "营业收入 > 资产减值损失",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "资产减值"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "01.07",
+          "account_code_dash": "01-07",
+          "account_name": "公允价值变动收益",
+          "parent_code": "01",
+          "level": 2,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "营业收入 > 公允价值变动收益",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "公允价值变动收益（损失以“-”号填列）",
+              "公允价值变动"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "01.08",
+          "account_code_dash": "01-08",
+          "account_name": "投资收益",
+          "parent_code": "01",
+          "level": 2,
+          "is_summary": false,
+          "is_leaf_for_fact": false,
+          "standard_path": "营业收入 > 投资收益",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "投资收益（损失以“-”号填列）",
+              "处置交易性金融资产取得的投资收益"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "01.08.01",
+          "account_code_dash": "01-08-01",
+          "account_name": "对联营企业和合营企业的投资收益",
+          "parent_code": "01.08",
+          "level": 3,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "营业收入 > 投资收益 > 对联营企业和合营企业的投资收益",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "对联营企业和合营企业的投资收益（损失以“-”号填列）"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "01.09",
+          "account_code_dash": "01-09",
+          "account_name": "资产处置收益",
+          "parent_code": "01",
+          "level": 2,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "营业收入 > 资产处置收益",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "资产处置收益（损失以“-”号填列）",
+              "资产处置损益"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "01.10",
+          "account_code_dash": "01-10",
+          "account_name": "其他收益",
+          "parent_code": "01",
+          "level": 2,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "营业收入 > 其他收益",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "其他收益（损失以“-”号填列）"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "01.11",
+          "account_code_dash": "01-11",
+          "account_name": "净敞口套期收益",
+          "parent_code": "01",
+          "level": 2,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "营业收入 > 净敞口套期收益",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "净敞口套期收益（损失以“-”号填列）",
+              "套期损益"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1131,16 +1819,68 @@
         {
           "account_code": "02",
           "account_code_dash": "02",
-          "account_name": "营业成本",
+          "account_name": "营业利润",
           "parent_code": "",
           "level": 1,
-          "is_summary": false,
-          "is_leaf_for_fact": true,
-          "standard_path": "营业成本",
+          "is_summary": true,
+          "is_leaf_for_fact": false,
+          "standard_path": "营业利润",
           "report_category": "利润表",
           "match_rules": {
-            "aliases": ["主营业务成本", "销售成本"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "经营利润"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "02.01",
+          "account_code_dash": "02-01",
+          "account_name": "营业外收入",
+          "parent_code": "02",
+          "level": 2,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "营业利润 > 营业外收入",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "营业外收益"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "02.02",
+          "account_code_dash": "02-02",
+          "account_name": "营业外支出",
+          "parent_code": "02",
+          "level": 2,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "营业利润 > 营业外支出",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "营业外损失"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1148,16 +1888,46 @@
         {
           "account_code": "03",
           "account_code_dash": "03",
-          "account_name": "营业利润",
+          "account_name": "利润总额",
           "parent_code": "",
           "level": 1,
           "is_summary": true,
-          "is_leaf_for_fact": true,
-          "standard_path": "营业利润",
+          "is_leaf_for_fact": false,
+          "standard_path": "利润总额",
           "report_category": "利润表",
           "match_rules": {
-            "aliases": ["经营利润"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "总利润"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "03.01",
+          "account_code_dash": "03-01",
+          "account_name": "所得税费用",
+          "parent_code": "03",
+          "level": 2,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "利润总额 > 所得税费用",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "所得税",
+              "企业所得税"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1165,16 +1935,69 @@
         {
           "account_code": "04",
           "account_code_dash": "04",
-          "account_name": "利润总额",
+          "account_name": "净利润",
           "parent_code": "",
           "level": 1,
           "is_summary": true,
-          "is_leaf_for_fact": true,
-          "standard_path": "利润总额",
+          "is_leaf_for_fact": false,
+          "standard_path": "净利润",
           "report_category": "利润表",
           "match_rules": {
-            "aliases": ["总利润"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "净利",
+              "税后利润"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "04.01",
+          "account_code_dash": "04-01",
+          "account_name": "持续经营净利润",
+          "parent_code": "04",
+          "level": 2,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "净利润 > 持续经营净利润",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "持续经营净利润（净亏损以“-”号填列）"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "04.02",
+          "account_code_dash": "04-02",
+          "account_name": "终止经营净利润",
+          "parent_code": "04",
+          "level": 2,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "净利润 > 终止经营净利润",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "终止经营净利润（净亏损以“-”号填列）"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1182,16 +2005,209 @@
         {
           "account_code": "05",
           "account_code_dash": "05",
-          "account_name": "净利润",
+          "account_name": "其他综合收益的税后净额",
           "parent_code": "",
           "level": 1,
           "is_summary": true,
-          "is_leaf_for_fact": true,
-          "standard_path": "净利润",
+          "is_leaf_for_fact": false,
+          "standard_path": "其他综合收益的税后净额",
           "report_category": "利润表",
           "match_rules": {
-            "aliases": ["净利", "税后利润"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "05.01",
+          "account_code_dash": "05-01",
+          "account_name": "以后不能重分类进损益的其他综合收益",
+          "parent_code": "05",
+          "level": 2,
+          "is_summary": true,
+          "is_leaf_for_fact": false,
+          "standard_path": "其他综合收益的税后净额 > 以后不能重分类进损益的其他综合收益",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "05.01.01",
+          "account_code_dash": "05-01-01",
+          "account_name": "重新计量设定受益计划净负债或净资产的变动",
+          "parent_code": "05.01",
+          "level": 3,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "其他综合收益的税后净额 > 以后不能重分类进损益的其他综合收益 > 重新计量设定受益计划净负债或净资产的变动",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "05.01.02",
+          "account_code_dash": "05-01-02",
+          "account_name": "权益法下在被投资单位不能重分类进损益的其他综合收益中享有的份额",
+          "parent_code": "05.01",
+          "level": 3,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "其他综合收益的税后净额 > 以后不能重分类进损益的其他综合收益 > 权益法下在被投资单位不能重分类进损益的其他综合收益中享有的份额",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "05.02",
+          "account_code_dash": "05-02",
+          "account_name": "以后将重分类进损益的其他综合收益",
+          "parent_code": "05",
+          "level": 2,
+          "is_summary": true,
+          "is_leaf_for_fact": false,
+          "standard_path": "其他综合收益的税后净额 > 以后将重分类进损益的其他综合收益",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "05.02.01",
+          "account_code_dash": "05-02-01",
+          "account_name": "权益法下在被投资单位以后将重分类进损益的其他综合收益中享有的份额",
+          "parent_code": "05.02",
+          "level": 3,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "其他综合收益的税后净额 > 以后将重分类进损益的其他综合收益 > 权益法下在被投资单位以后将重分类进损益的其他综合收益中享有的份额",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "05.02.02",
+          "account_code_dash": "05-02-02",
+          "account_name": "可供出售金融资产公允价值变动损益",
+          "parent_code": "05.02",
+          "level": 3,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "其他综合收益的税后净额 > 以后将重分类进损益的其他综合收益 > 可供出售金融资产公允价值变动损益",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "05.02.03",
+          "account_code_dash": "05-02-03",
+          "account_name": "持有至到期投资重分类为可供出售金融资产损益",
+          "parent_code": "05.02",
+          "level": 3,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "其他综合收益的税后净额 > 以后将重分类进损益的其他综合收益 > 持有至到期投资重分类为可供出售金融资产损益",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "05.02.04",
+          "account_code_dash": "05-02-04",
+          "account_name": "现金流量套期损益的有效部分",
+          "parent_code": "05.02",
+          "level": 3,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "其他综合收益的税后净额 > 以后将重分类进损益的其他综合收益 > 现金流量套期损益的有效部分",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "05.02.05",
+          "account_code_dash": "05-02-05",
+          "account_name": "外币财务报表折算差额",
+          "parent_code": "05.02",
+          "level": 3,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "其他综合收益的税后净额 > 以后将重分类进损益的其他综合收益 > 外币财务报表折算差额",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1199,16 +2215,20 @@
         {
           "account_code": "06",
           "account_code_dash": "06",
-          "account_name": "财务费用",
+          "account_name": "综合收益总额",
           "parent_code": "",
           "level": 1,
-          "is_summary": false,
+          "is_summary": true,
           "is_leaf_for_fact": true,
-          "standard_path": "财务费用",
+          "standard_path": "综合收益总额",
           "report_category": "利润表",
           "match_rules": {
-            "aliases": ["融资费用"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1216,16 +2236,68 @@
         {
           "account_code": "07",
           "account_code_dash": "07",
-          "account_name": "利息费用",
+          "account_name": "每股收益",
           "parent_code": "",
           "level": 1,
-          "is_summary": false,
-          "is_leaf_for_fact": true,
-          "standard_path": "利息费用",
+          "is_summary": true,
+          "is_leaf_for_fact": false,
+          "standard_path": "每股收益",
           "report_category": "利润表",
           "match_rules": {
-            "aliases": ["利息支出"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "07.01",
+          "account_code_dash": "07-01",
+          "account_name": "基本每股收益",
+          "parent_code": "07",
+          "level": 2,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "每股收益 > 基本每股收益",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "每股收益（基本）",
+              "基本EPS"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "07.02",
+          "account_code_dash": "07-02",
+          "account_name": "稀释每股收益",
+          "parent_code": "07",
+          "level": 2,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "每股收益 > 稀释每股收益",
+          "report_category": "利润表",
+          "match_rules": {
+            "aliases": [
+              "每股收益（稀释）",
+              "稀释EPS"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1233,125 +2305,6 @@
         {
           "account_code": "08",
           "account_code_dash": "08",
-          "account_name": "利息收入",
-          "parent_code": "",
-          "level": 1,
-          "is_summary": false,
-          "is_leaf_for_fact": true,
-          "standard_path": "利息收入",
-          "report_category": "利润表",
-          "match_rules": {
-            "aliases": ["利息收益"],
-            "ignore_prefix": ["其中：", "其中："],
-            "exact_match_only": false,
-            "match_priority": 100
-          }
-        },
-        {
-          "account_code": "09",
-          "account_code_dash": "09",
-          "account_name": "公允价值变动收益",
-          "parent_code": "",
-          "level": 1,
-          "is_summary": false,
-          "is_leaf_for_fact": true,
-          "standard_path": "公允价值变动收益",
-          "report_category": "利润表",
-          "match_rules": {
-            "aliases": ["公允价值变动收益（损失以“-”号填列）", "公允价值变动"],
-            "ignore_prefix": ["其中：", "其中："],
-            "exact_match_only": false,
-            "match_priority": 100
-          }
-        },
-        {
-          "account_code": "10",
-          "account_code_dash": "10",
-          "account_name": "投资收益",
-          "parent_code": "",
-          "level": 1,
-          "is_summary": false,
-          "is_leaf_for_fact": true,
-          "standard_path": "投资收益",
-          "report_category": "利润表",
-          "match_rules": {
-            "aliases": ["投资收益（损失以“-”号填列）", "处置交易性金融资产取得的投资收益"],
-            "ignore_prefix": ["其中：", "其中："],
-            "exact_match_only": false,
-            "match_priority": 100
-          }
-        },
-        {
-          "account_code": "11",
-          "account_code_dash": "11",
-          "account_name": "汇兑净损失",
-          "parent_code": "",
-          "level": 1,
-          "is_summary": false,
-          "is_leaf_for_fact": true,
-          "standard_path": "汇兑净损失",
-          "report_category": "利润表",
-          "match_rules": {
-            "aliases": ["汇兑净损失（净收益以\"-\"号填列）", "汇兑净损失（净收益以“-”号填列）", "汇兑损益"],
-            "ignore_prefix": ["其中：", "其中："],
-            "exact_match_only": false,
-            "match_priority": 100
-          }
-        },
-        {
-          "account_code": "12",
-          "account_code_dash": "12",
-          "account_name": "金融机构手续费",
-          "parent_code": "",
-          "level": 1,
-          "is_summary": false,
-          "is_leaf_for_fact": true,
-          "standard_path": "金融机构手续费",
-          "report_category": "利润表",
-          "match_rules": {
-            "aliases": ["银行手续费"],
-            "ignore_prefix": ["其中：", "其中："],
-            "exact_match_only": false,
-            "match_priority": 100
-          }
-        },
-        {
-          "account_code": "13",
-          "account_code_dash": "13",
-          "account_name": "票据贴现利息",
-          "parent_code": "",
-          "level": 1,
-          "is_summary": false,
-          "is_leaf_for_fact": true,
-          "standard_path": "票据贴现利息",
-          "report_category": "利润表",
-          "match_rules": {
-            "aliases": ["贴现利息"],
-            "ignore_prefix": ["其中：", "其中："],
-            "exact_match_only": false,
-            "match_priority": 100
-          }
-        },
-        {
-          "account_code": "14",
-          "account_code_dash": "14",
-          "account_name": "净敞口套期收益",
-          "parent_code": "",
-          "level": 1,
-          "is_summary": false,
-          "is_leaf_for_fact": true,
-          "standard_path": "净敞口套期收益",
-          "report_category": "利润表",
-          "match_rules": {
-            "aliases": ["净敞口套期收益（损失以\"-\"号填列）", "套期损益"],
-            "ignore_prefix": ["其中：", "其中："],
-            "exact_match_only": false,
-            "match_priority": 100
-          }
-        },
-        {
-          "account_code": "15",
-          "account_code_dash": "15",
           "account_name": "利润表指标",
           "parent_code": "",
           "level": 1,
@@ -1360,15 +2313,21 @@
           "standard_path": "利润表指标",
           "report_category": "利润表",
           "match_rules": {
-            "aliases": ["利润指标"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "利润指标"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
         },
         {
-          "account_code": "16",
-          "account_code_dash": "16",
+          "account_code": "09",
+          "account_code_dash": "09",
           "account_name": "其他",
           "parent_code": "",
           "level": 1,
@@ -1378,14 +2337,18 @@
           "report_category": "利润表",
           "match_rules": {
             "aliases": [],
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
             "exact_match_only": true,
             "match_priority": 10
           }
         },
         {
-          "account_code": "17",
-          "account_code_dash": "17",
+          "account_code": "10",
+          "account_code_dash": "10",
           "account_name": "集团内",
           "parent_code": "",
           "level": 1,
@@ -1395,8 +2358,11 @@
           "report_category": "利润表",
           "match_rules": {
             "aliases": [],
-            "scope_parent_code": null,
-            "ignore_prefix": ["其中：", "其中："],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1406,7 +2372,7 @@
     {
       "report_type": "cash_flow",
       "report_name": "现金流量表",
-      "description": "现金流量表科目列表",
+      "description": "现金流量表科目（2018年版标准层级结构）",
       "accounts": [
         {
           "account_code": "01",
@@ -1419,8 +2385,14 @@
           "standard_path": "经营活动产生的现金流量净额",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["经营现金流量净额", "经营现金净流量"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "经营现金流量净额",
+              "经营现金净流量"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1436,8 +2408,14 @@
           "standard_path": "投资活动产生的现金流量净额",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["投资现金流量净额", "投资现金净流量"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "投资现金流量净额",
+              "投资现金净流量"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1453,8 +2431,14 @@
           "standard_path": "筹资活动产生的现金流量净额",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["筹资现金流量净额", "筹资现金净流量"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "筹资现金流量净额",
+              "筹资现金净流量"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1470,8 +2454,14 @@
           "standard_path": "现金及现金等价物净增加额",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["现金净增加额", "现金净流量"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "现金净增加额",
+              "现金净流量"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1487,8 +2477,13 @@
           "standard_path": "经营活动产生的现金流量",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["经营现金流量"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "经营现金流量"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1504,8 +2499,13 @@
           "standard_path": "经营活动产生的现金流量 > 经营活动现金流入",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["经营现金流入"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "经营现金流入"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1521,8 +2521,13 @@
           "standard_path": "经营活动产生的现金流量 > 经营活动现金流入 > 销售商品、提供劳务收到的现金",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["销售收入现金"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "销售收入现金"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1538,8 +2543,13 @@
           "standard_path": "经营活动产生的现金流量 > 经营活动现金流入 > 收到的税费返还",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["税费返还现金"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "税费返还现金"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1555,8 +2565,13 @@
           "standard_path": "经营活动产生的现金流量 > 经营活动现金流入 > 收到其他与经营活动有关的现金",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["其他经营现金流入"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "其他经营现金流入"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1572,8 +2587,13 @@
           "standard_path": "经营活动产生的现金流量 > 经营活动现金流出",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["经营现金流出"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "经营现金流出"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1589,8 +2609,13 @@
           "standard_path": "经营活动产生的现金流量 > 经营活动现金流出 > 购买商品、接受劳务支付的现金",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["采购现金流出"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "采购现金流出"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1606,8 +2631,13 @@
           "standard_path": "经营活动产生的现金流量 > 经营活动现金流出 > 支付给职工以及为职工支付的现金",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["职工薪酬现金"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "职工薪酬现金"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1623,8 +2653,13 @@
           "standard_path": "经营活动产生的现金流量 > 经营活动现金流出 > 支付的各项税费",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["税费现金"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "税费现金"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1640,8 +2675,13 @@
           "standard_path": "经营活动产生的现金流量 > 经营活动现金流出 > 支付其他与经营活动有关的现金",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["其他经营现金流出"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "其他经营现金流出"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1657,8 +2697,13 @@
           "standard_path": "投资活动产生的现金流量",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["投资现金流量"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "投资现金流量"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1674,8 +2719,13 @@
           "standard_path": "投资活动产生的现金流量 > 投资活动现金流入",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["投资现金流入"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "投资现金流入"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1691,8 +2741,13 @@
           "standard_path": "投资活动产生的现金流量 > 投资活动现金流入 > 收回投资收到的现金",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["收回投资现金"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "收回投资现金"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1708,8 +2763,13 @@
           "standard_path": "投资活动产生的现金流量 > 投资活动现金流入 > 取得投资收益收到的现金",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["投资收益现金"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "投资收益现金"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1725,8 +2785,13 @@
           "standard_path": "投资活动产生的现金流量 > 投资活动现金流入 > 处置固定资产、无形资产和其他长期资产所收回的现金净额",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["处置资产现金"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "处置资产现金"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1742,8 +2807,13 @@
           "standard_path": "投资活动产生的现金流量 > 投资活动现金流入 > 处置子公司及其他营业单位收回的现金净额",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["处置子公司现金"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "处置子公司现金"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1759,8 +2829,13 @@
           "standard_path": "投资活动产生的现金流量 > 投资活动现金流入 > 收到其他与投资活动有关的现金",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["其他投资现金流入"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "其他投资现金流入"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1776,8 +2851,13 @@
           "standard_path": "投资活动产生的现金流量 > 投资活动现金流出",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["投资现金流出"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "投资现金流出"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1793,8 +2873,13 @@
           "standard_path": "投资活动产生的现金流量 > 投资活动现金流出 > 购建固定资产、无形资产和其他长期资产所支付的现金",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["购建资产现金"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "购建资产现金"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1810,8 +2895,13 @@
           "standard_path": "投资活动产生的现金流量 > 投资活动现金流出 > 投资支付的现金",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["投资支付现金"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "投资支付现金"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1827,8 +2917,36 @@
           "standard_path": "投资活动产生的现金流量 > 投资活动现金流出 > 支付其他与投资活动有关的现金",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["其他投资现金流出"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "其他投资现金流出"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
+            "exact_match_only": false,
+            "match_priority": 100
+          }
+        },
+        {
+          "account_code": "06.02.04",
+          "account_code_dash": "06-02-04",
+          "account_name": "取得子公司及其他营业单位支付的现金净额",
+          "parent_code": "06.02",
+          "level": 3,
+          "is_summary": false,
+          "is_leaf_for_fact": true,
+          "standard_path": "投资活动产生的现金流量 > 投资活动现金流出 > 取得子公司及其他营业单位支付的现金净额",
+          "report_category": "现金流量表",
+          "match_rules": {
+            "aliases": [
+              "取得子公司及其他营业单位支付的现金"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "减：",
+              "加："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1844,8 +2962,13 @@
           "standard_path": "筹资活动产生的现金流量",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["筹资现金流量"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "筹资现金流量"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1861,8 +2984,13 @@
           "standard_path": "筹资活动产生的现金流量 > 筹资活动现金流入",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["筹资现金流入"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "筹资现金流入"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1878,8 +3006,13 @@
           "standard_path": "筹资活动产生的现金流量 > 筹资活动现金流入 > 吸收投资收到的现金",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["吸收投资现金"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "吸收投资现金"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1895,8 +3028,13 @@
           "standard_path": "筹资活动产生的现金流量 > 筹资活动现金流入 > 取得借款收到的现金",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["借款收到现金"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "借款收到现金"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1912,8 +3050,13 @@
           "standard_path": "筹资活动产生的现金流量 > 筹资活动现金流入 > 收到其他与筹资活动有关的现金",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["其他筹资现金流入"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "其他筹资现金流入"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1929,8 +3072,13 @@
           "standard_path": "筹资活动产生的现金流量 > 筹资活动现金流出",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["筹资现金流出"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "筹资现金流出"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1946,8 +3094,13 @@
           "standard_path": "筹资活动产生的现金流量 > 筹资活动现金流出 > 偿还债务支付的现金",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["偿还债务现金"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "偿还债务现金"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1963,8 +3116,13 @@
           "standard_path": "筹资活动产生的现金流量 > 筹资活动现金流出 > 分配股利、利润或偿付利息支付的现金",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["分配股利现金"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "分配股利现金"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1980,8 +3138,13 @@
           "standard_path": "筹资活动产生的现金流量 > 筹资活动现金流出 > 支付其他与筹资活动有关的现金",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["其他筹资现金流出"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "其他筹资现金流出"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -1997,8 +3160,13 @@
           "standard_path": "汇率变动对现金及现金等价物的影响",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["汇率变动影响"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "汇率变动影响"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -2014,8 +3182,13 @@
           "standard_path": "期初现金及现金等价物余额",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["期初现金余额"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "期初现金余额"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -2031,8 +3204,13 @@
           "standard_path": "期末现金及现金等价物余额",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["期末现金余额"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "期末现金余额"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -2048,8 +3226,13 @@
           "standard_path": "现金流量表指标",
           "report_category": "现金流量表",
           "match_rules": {
-            "aliases": ["现金流指标"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "现金流指标"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -2059,7 +3242,7 @@
     {
       "report_type": "equity_change",
       "report_name": "所有者权益变动表",
-      "description": "所有者权益变动表科目列表",
+      "description": "所有者权益变动表科目（2018年版标准层级结构）",
       "accounts": [
         {
           "account_code": "01",
@@ -2072,8 +3255,14 @@
           "standard_path": "实收资本",
           "report_category": "所有者权益变动表",
           "match_rules": {
-            "aliases": ["股本", "注册资本"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "股本",
+              "注册资本"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -2089,8 +3278,13 @@
           "standard_path": "资本公积",
           "report_category": "所有者权益变动表",
           "match_rules": {
-            "aliases": ["资本公积金"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "资本公积金"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -2106,8 +3300,13 @@
           "standard_path": "盈余公积",
           "report_category": "所有者权益变动表",
           "match_rules": {
-            "aliases": ["盈余公积金"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "盈余公积金"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -2123,8 +3322,13 @@
           "standard_path": "未分配利润",
           "report_category": "所有者权益变动表",
           "match_rules": {
-            "aliases": ["留存收益"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "留存收益"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }
@@ -2140,8 +3344,14 @@
           "standard_path": "所有者权益变动总额",
           "report_category": "所有者权益变动表",
           "match_rules": {
-            "aliases": ["权益变动总额", "权益变动合计"],
-            "ignore_prefix": ["其中：", "其中："],
+            "aliases": [
+              "权益变动总额",
+              "权益变动合计"
+            ],
+            "ignore_prefix": [
+              "其中：",
+              "其中："
+            ],
             "exact_match_only": false,
             "match_priority": 100
           }

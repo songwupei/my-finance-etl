@@ -7,7 +7,7 @@ hooks:
     # - {"cmd": "python -c \"from my_finance_etl.geocoder import run; run()\"", "cwd": "./"}
 
   # Node-specific hooks
-  # after_nodes:
+  after_nodes:
     # 在 build_dimension_tables 完成后执行地理编码
-    # build_dimension_tables:
-    #   - "python -c \"from my_finance_etl.geocoder import run; run()\""
+    build_dimension_tables:
+      - "python -c \"from my_finance_etl.geocoder import run; run()\""

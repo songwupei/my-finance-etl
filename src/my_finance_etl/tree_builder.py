@@ -54,9 +54,6 @@ def build_organization_tree(
         # 生成本节点ID和父节点ID
         node_id = f"{unit_code}_{suffix}"
         parent_id = find_parent_node_id(parent_code, all_node_ids)
-        # 自引用检测：父节点即自己 → 挂 root
-        if parent_id == node_id:
-            parent_id = "#"
 
         # 在 dim_unit_report 中查找 entity_report_id
         entity_match = dim_unit_report.filter(
@@ -93,35 +90,64 @@ def build_organization_tree(
 
     tree_df = pl.DataFrame(records)
 
-    # 后处理：修正树根 — 自引用/失踪父节点挂 #，根节点后缀统一为 _9
-    node_ids_set = set(tree_df["node_id"].to_list())
-    rename_map = {}  # old_node_id → new_node_id
-    fixed_parents = []
-    fixed_node_ids = []
-    fixed_node_names = []
-    for row in tree_df.iter_rows(named=True):
-        pid = row["parent_id"]
-        nid = row["node_id"]
-        if pid == nid or pid not in node_ids_set:
-            pid = "#"
-        # 根节点如果是 _1 且无对应 _9 → 改名 _9 (合并口径)
-        if pid == "#" and nid.endswith("_1"):
-            code = row["unit_code"]
-            nid_9 = f"{code}_9"
-            if nid_9 not in node_ids_set:
-                rename_map[nid] = nid_9
-                row["node_name"] = row["node_name"].replace("_1 (", "_9 (")
-                nid = nid_9
-        fixed_parents.append(pid)
-        fixed_node_ids.append(nid)
-        fixed_node_names.append(row["node_name"])
-    # 同步更新子节点的 parent_id 引用
-    if rename_map:
-        fixed_parents = [rename_map.get(p, p) for p in fixed_parents]
-    tree_df = tree_df.with_columns([
-        pl.Series("parent_id", fixed_parents),
-        pl.Series("node_id", fixed_node_ids),
-        pl.Series("node_name", fixed_node_names),
-    ])
+    # ═══════════════════════════════════════════════════════════
+    # 后处理：修正组织树中的三种边界情况
+    # ═══════════════════════════════════════════════════════════
+    #
+    # 这段后处理存在的背景：
+    #   all_node_ids 是从 parsed_base_info（当期实际出现的节点）构建的，
+    #   而非从 dim_unit_report（报送维度全量）构建。这导致三种异常：
+    #
+    #   (1) 自引用 (parent_id == node_id)：
+    #       节点把自己当父节点，形成环。上层数据缺失或编码错误导致。
+    #       处理：父节点强制挂到 "#"（树根）。
+    #
+    #   (2) 父节点失踪 (parent_id 不在 node_ids_set 中)：
+    #       父节点在 parsed_base_info 中不存在（可能仅存在于 dim_unit_report
+    #       但本期未出现），find_parent_node_id 退回 "#" 后仍可能误挂。
+    #       处理：遍历时二次检查，失踪父节点同样挂到 "#"。
+    #
+    #   (3) 根节点后缀不一致（suffix=_1 但缺少对应的 _9）：
+    #       根节点本应以 suffix=_9（合并口径）展示，但上游有时只报送了
+    #       suffix=_1（单体口径）。缺少 _9 且无对等节点时，将 _1 改名 _9，
+    #       使树根节点口径统一，下游展示/钻取无需区分口径。
+    #       处理：若根节点以 _1 结尾且 _9 不存在，则改名为 _9 并修正 node_name。
+    #
+
+    # node_ids_set = set(tree_df["node_id"].to_list())
+    # rename_map = {}  # old_node_id → new_node_id
+    # fixed_parents = []
+    # fixed_node_ids = []
+    # fixed_node_names = []
+    # for row in tree_df.iter_rows(named=True):
+    #     pid = row["parent_id"]
+    #     nid = row["node_id"]
+
+    #     # 修正(1)(2)：自引用或父节点失踪 → 挂到树根 "#"
+    #     if pid == nid or pid not in node_ids_set:
+    #         pid = "#"
+
+    #     # 修正(3)：根节点 suffix=_1 且无对应 _9 → 改名 _9 (合并口径)
+    #     if pid == "#" and nid.endswith("_1"):
+    #         code = row["unit_code"]
+    #         nid_9 = f"{code}_9"
+    #         if nid_9 not in node_ids_set:
+    #             rename_map[nid] = nid_9
+    #             row["node_name"] = row["node_name"].replace("_1 (", "_9 (")
+    #             nid = nid_9
+
+    #     fixed_parents.append(pid)
+    #     fixed_node_ids.append(nid)
+    #     fixed_node_names.append(row["node_name"])
+
+    # # 修正(3) 联动：被改名的节点若被其他节点引用为 parent_id，需同步更新引用
+    # if rename_map:
+    #     fixed_parents = [rename_map.get(p, p) for p in fixed_parents]
+
+    # tree_df = tree_df.with_columns([
+    #     pl.Series("parent_id", fixed_parents),
+    #     pl.Series("node_id", fixed_node_ids),
+    #     pl.Series("node_name", fixed_node_names),
+    # ])
 
     return tree_df
