@@ -720,6 +720,7 @@ try:
         SELECT
             ta.institution_code,
             ta.sub_group_name,
+            ta.account_name,
             COALESCE(NULLIF(ta.financial_institution, ''), '未知银行') AS financial_institution,
             COALESCE(NULLIF(ta.bank_city, ''), '未知城市') AS bank_city,
             fb.balance_amount,
@@ -776,14 +777,19 @@ if _bank_map_account_data.shape[0] > 0:
 _account_detail_df = None
 if _bank_map_account_data.shape[0] > 0:
     _account_detail_df = _bank_map_account_data[[
-        "sub_group_name", "financial_institution", "branch_name",
-        "bank_city", "province", "balance_amount",
-    ]].rename(columns={
-        "sub_group_name": "子集团", "financial_institution": "所属银行",
-        "bank_city": "城市", "province": "省份", "balance_amount": "余额",
-    }).sort_values("余额", ascending=False)
-    # Keep branch_name for vm.Filter; show as 开户网点 in AgGrid via columnDefs
-    _account_detail_df["开户网点"] = _account_detail_df["branch_name"]
+        "sub_group_name", "account_name", "financial_institution",
+        "bank_city", "province", "branch_name", "balance_amount",
+    ]].sort_values("balance_amount", ascending=False)
+
+_account_detail_column_defs = [
+    {"field": "sub_group_name", "headerName": "子集团"},
+    {"field": "account_name", "headerName": "账户户名"},
+    {"field": "financial_institution", "headerName": "所属银行"},
+    {"field": "bank_city", "headerName": "城市"},
+    {"field": "province", "headerName": "省份"},
+    {"field": "balance_amount", "headerName": "余额"},
+    {"field": "branch_name", "headerName": "开户网点"},
+]
 
 _vizro_page_account_detail = vm.Page(
     id="account-detail",
@@ -792,7 +798,8 @@ _vizro_page_account_detail = vm.Page(
         vm.AgGrid(
             figure=dash_ag_grid(
                 data_frame=_account_detail_df,
-                dashGridOptions={"pagination": True, "domLayout": "autoHeight"},
+                dashGridOptions={"pagination": True, "domLayout": "autoHeight",
+                                 "columnDefs": _account_detail_column_defs},
             ),
             title="账户明细表",
         ),
@@ -899,7 +906,8 @@ _vizro_page_bank_map = vm.Page(
             id="clicked-branch-table",
             figure=dash_ag_grid(
                 data_frame=_account_detail_df,
-                dashGridOptions={"pagination": True, "domLayout": "autoHeight"},
+                dashGridOptions={"pagination": True, "domLayout": "autoHeight",
+                                 "columnDefs": _account_detail_column_defs},
             ),
             title="点击气泡筛选此表",
         ),
@@ -1343,18 +1351,6 @@ def update_branch_options(prov, city, bank, sg):
     if df is None: return no_update
     df = _apply_all_filters(df, prov, city, bank, sg)
     return _get_filter_options(df, "branch_name")
-
-
-# --- 网点筛选 → 更新 AgGrid ---
-@callback(Output("clicked-branch-table", "rowData"),
-          Input("branch-filter", "value"))
-def filter_aggrid_by_branch(branches):
-    df = _account_detail_df
-    if df is None:
-        return no_update
-    if branches:
-        df = df[df["branch_name"].isin(branches)]
-    return df.drop(columns=["branch_name"], errors="ignore").to_dict("records")
 
 
 if __name__ == "__main__":

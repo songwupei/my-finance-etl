@@ -2,7 +2,7 @@
 
 基于 Kedro 数据管道框架的财务数据 ETL 与可视化平台，支持动态 Excel 文件扫描、指标标准化处理、组织树构建、资金账户解析、地理编码与可视化展示。
 
-**版本**: 1.4.1
+**版本**: 1.4.2
 
 ## 项目结构
 
@@ -262,11 +262,17 @@ tail -f logs/my_finance_etl.log
 
 ## 版本历史
 
+### v1.4.2 (2026-05-13)
+
+- **AgGrid 筛选修复** 🔧: 修复 v1.4.1 中 5 维筛选对 AgGrid 不生效的 bug — `_account_detail_df` 保留英文列名匹配 Vizro Filter，改用 `columnDefs.headerName` 设置中文显示名；删除无效 `rowData` 手动回调（目标组件 ID 错误 + 与 Vizro 内部竞态）
+- **新增账户户名列** 📋: SQL 查询增加 `ta.account_name`，AgGrid 第二列显示具体开户企业名称
+- **代码清理**: 移除冗余的 `_account_detail_df` 列 rename 和重复的 `开户网点` 列
+
 ### v1.4.1 (2026-05-13)
 
-- **账户明细表页面** 📋: 新增独立 Vizro 页面 `account-detail`，使用 AgGrid 交互式表格展示全量账户明细（子集团/银行/网点/城市/省份/余额），支持分页和排序
-- **账户地图内嵌表格** 🗺️: `bank-account-map` 地图页面新增加 AgGrid 明细表，通过 Dash 回调实现点击气泡联动筛选；新增开户网点 (`branch_name`) 维度的下拉筛选器，形成 5 维筛选（子集团/银行/省份/城市/网点）
-- **Dash 联动回调增强** 🔗: 新增开户网点 Dropdown 选项更新回调 (`update_branch_options`)，依赖 4 维筛选联动；新增 AgGrid 行数据筛选回调 (`filter_aggrid_by_branch`)，网点筛选后实时更新表格
+- **账户明细表页面** 📋: 新增独立 Vizro 页面 `account-detail`，使用 AgGrid 交互式表格展示全量账户明细（子集团/账户户名/所属银行/城市/省份/余额/开户网点），支持分页和排序
+- **账户地图内嵌表格** 🗺️: `bank-account-map` 地图页面新增加 AgGrid 明细表，通过 Vizro 自动筛选联动地图气泡；5 维筛选（子集团/所属银行/省份/城市/开户网点）统一作用于图表和表格，Dash 回调实现省份→城市级联选项更新
+- **AgGrid 列名对齐修复** 🔧: `_account_detail_df` 保留英文列名匹配 Vizro Filter 列名要求（不再 rename 为中文），改用 `columnDefs.headerName` 设置中文显示名；删除无效的 `rowData` 手动回调（目标组件 ID 错误 + 与 Vizro 内部 `_on_page_load` 竞态），筛选由 Vizro 自动托管
 - **导航菜单更新**: "分析"菜单新增"账户明细表"入口
 
 ### v1.4 (2026-05-13)
