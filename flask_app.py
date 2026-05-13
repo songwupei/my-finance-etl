@@ -15,6 +15,7 @@ import vizro.models as vm
 from map_utils.china_map import create_china_map_figure, add_scattermap
 import numpy as np
 from vizro.models.types import capture
+from vizro.tables import dash_ag_grid
 
 app = Flask(__name__)
 
@@ -772,6 +773,32 @@ _CITY_PROVINCE = {
 if _bank_map_account_data.shape[0] > 0:
     _bank_map_account_data["province"] = _bank_map_account_data["bank_city"].map(_CITY_PROVINCE).fillna("其他")
 
+_account_detail_df = None
+if _bank_map_account_data.shape[0] > 0:
+    _account_detail_df = _bank_map_account_data[[
+        "sub_group_name", "financial_institution", "branch_name",
+        "bank_city", "province", "balance_amount",
+    ]].rename(columns={
+        "sub_group_name": "子集团", "financial_institution": "所属银行",
+        "bank_city": "城市", "province": "省份", "balance_amount": "余额",
+    }).sort_values("余额", ascending=False)
+    # Keep branch_name for vm.Filter; show as 开户网点 in AgGrid via columnDefs
+    _account_detail_df["开户网点"] = _account_detail_df["branch_name"]
+
+_vizro_page_account_detail = vm.Page(
+    id="account-detail",
+    title="账户明细表",
+    components=[
+        vm.AgGrid(
+            figure=dash_ag_grid(
+                data_frame=_account_detail_df,
+                dashGridOptions={"pagination": True, "domLayout": "autoHeight"},
+            ),
+            title="账户明细表",
+        ),
+    ],
+)
+
 _map_cfg = yaml.safe_load(open(_proj_dir / "conf/base/parameters.yml")).get("map", {})
 
 
@@ -851,7 +878,6 @@ def bank_account_map(data_frame=None):
         ),
         text=agg["hover_text"].to_list(),
         hoverinfo="text",
-        customdata=agg[["branch_name"]].values,
     )
     fig.update_layout(
         xaxis=dict(showticklabels=False, showgrid=False, zeroline=False, visible=False),
@@ -864,7 +890,20 @@ def bank_account_map(data_frame=None):
 _vizro_page_bank_map = vm.Page(
     id="bank-account-map",
     title="账户地图",
-    components=[vm.Graph(figure=bank_account_map(data_frame=_bank_map_account_data))],
+    components=[
+        vm.Graph(
+            id="bank-map-graph",
+            figure=bank_account_map(data_frame=_bank_map_account_data),
+        ),
+        vm.AgGrid(
+            id="clicked-branch-table",
+            figure=dash_ag_grid(
+                data_frame=_account_detail_df,
+                dashGridOptions={"pagination": True, "domLayout": "autoHeight"},
+            ),
+            title="点击气泡筛选此表",
+        ),
+    ],
     controls=[
         vm.Filter(column="sub_group_name",
                   selector=vm.Dropdown(id="sg-filter", title="子集团", multi=True)),
@@ -874,6 +913,8 @@ _vizro_page_bank_map = vm.Page(
                   selector=vm.Dropdown(id="prov-filter", title="省份", multi=True)),
         vm.Filter(column="bank_city",
                   selector=vm.Dropdown(id="city-filter", title="城市", multi=True)),
+        vm.Filter(column="branch_name",
+                  selector=vm.Dropdown(id="branch-filter", title="开户网点", multi=True)),
     ],
 )
 
@@ -1185,7 +1226,7 @@ _vizro_navigation = vm.Navigation(
         "首页": ["home"],
         "地理": ["china-map"],
         "监控": ["penetration-monitor", "bank-account-map"],
-        "分析": ["relationship-analysis", "overview"],
+        "分析": ["relationship-analysis", "account-detail", "overview"],
         "账户余额统计分析": ["balance-overview", "balance-subgroup", "balance-bank", "balance-geo", "balance-cross"],
     },
     nav_selector=vm.NavBar(
@@ -1203,7 +1244,7 @@ _vizro_navigation = vm.Navigation(
                 label="账户",
                 pages={
                     "监控": ["penetration-monitor", "bank-account-map"],
-                    "分析": ["relationship-analysis", "overview"],
+                    "分析": ["relationship-analysis", "account-detail", "overview"],
                     "账户余额统计分析": ["balance-overview", "balance-subgroup", "balance-bank", "balance-geo", "balance-cross"],
                 },
             ),
@@ -1213,6 +1254,7 @@ _vizro_navigation = vm.Navigation(
 
 _vizro_dashboard = vm.Dashboard(
     pages=[_vizro_page_home, _vizro_page_monitor, _vizro_page_relationship,
+           _vizro_page_account_detail,
            _vizro_page_overview, _vizro_page_map, _vizro_page_bank_map,
            _vizro_page_balance_overview, _vizro_page_balance_subgroup,
            _vizro_page_balance_bank, _vizro_page_balance_geo, _vizro_page_balance_cross],
@@ -1233,10 +1275,11 @@ def _get_filter_options(df, column):
     return [{"label": v, "value": v} for v in vals]
 
 
-def _apply_all_filters(df, provinces, cities, banks, subgroups):
+def _apply_all_filters(df, provinces, cities, banks, subgroups, branches=None):
     """按已选值过滤数据."""
     for col, vals in [("province", provinces), ("bank_city", cities),
-                       ("financial_institution", banks), ("sub_group_name", subgroups)]:
+                       ("financial_institution", banks), ("sub_group_name", subgroups),
+                       ("branch_name", branches)]:
         if vals:
             df = df[df[col].isin(vals)]
     return df
@@ -1289,6 +1332,30 @@ def update_subgroup_options(prov, city, bank):
     if df is None: return no_update
     df = _apply_all_filters(df, prov, city, bank, None)
     return _get_filter_options(df, "sub_group_name")
+
+
+# --- 更新开户网点选项 (依赖: 4 维筛选) ---
+@callback(Output("branch-filter", "options"),
+          Input("prov-filter", "value"), Input("city-filter", "value"),
+          Input("bank-filter", "value"), Input("sg-filter", "value"))
+def update_branch_options(prov, city, bank, sg):
+    df = _bank_data()
+    if df is None: return no_update
+    df = _apply_all_filters(df, prov, city, bank, sg)
+    return _get_filter_options(df, "branch_name")
+
+
+# --- 网点筛选 → 更新 AgGrid ---
+@callback(Output("clicked-branch-table", "rowData"),
+          Input("branch-filter", "value"))
+def filter_aggrid_by_branch(branches):
+    df = _account_detail_df
+    if df is None:
+        return no_update
+    if branches:
+        df = df[df["branch_name"].isin(branches)]
+    return df.drop(columns=["branch_name"], errors="ignore").to_dict("records")
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5001)
