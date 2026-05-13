@@ -19,8 +19,9 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 
-# 导入项目自制的PolarsExcelDataset（符合用户要求）
+# 导入项目自制的PolarsExcelDataset
 from .io.polars_excel_dataset import PolarsExcelDataset
+from .file_cache import FileCache
 
 logger = logging.getLogger(__name__)
 
@@ -28,16 +29,19 @@ logger = logging.getLogger(__name__)
 class PolarsExcelProcessor:
     """使用Polars优化Excel文件处理的处理器。"""
 
-    def __init__(self, max_workers: int = 4, chunk_size: int = 100):
+    def __init__(self, max_workers: int = 4, chunk_size: int = 100,
+                 file_cache: Optional[FileCache] = None):
         """
         初始化Polars处理器。
 
         Args:
             max_workers: 并行处理的最大线程数
             chunk_size: 批量处理的文件大小
+            file_cache: 可选的 FileCache 实例，用于跳过未变化的文件
         """
         self.max_workers = max_workers
         self.chunk_size = chunk_size
+        self.file_cache = file_cache
         self._lock = threading.Lock()
 
     def process_excel_batch_polars(
@@ -128,8 +132,22 @@ class PolarsExcelProcessor:
             logger.warning(f"文件不存在: {filepath}")
             return None, None
 
+        # --- 缓存检查 ---
+        if self.file_cache:
+            cache_key = self.file_cache.get(str(filepath))
+            if cache_key:
+                try:
+                    bi_path = self.file_cache.base_info_path(cache_key)
+                    rd_path = self.file_cache.report_data_path(cache_key)
+                    base_info_df = pl.read_parquet(bi_path) if bi_path.exists() else pl.DataFrame()
+                    report_df = pl.read_parquet(rd_path) if rd_path.exists() else pl.DataFrame()
+                    logger.debug(f"Cache hit: {filepath}")
+                    return base_info_df, report_df
+                except Exception as e:
+                    logger.debug(f"Cache read failed, re-parsing: {e}")
+
         try:
-            # 使用项目自制的PolarsExcelDataset读取Excel（符合用户要求）
+            # 使用项目自制的PolarsExcelDataset读取Excel
             dataset = PolarsExcelDataset(
                 filepath=str(filepath),
                 load_args={
@@ -208,6 +226,17 @@ class PolarsExcelProcessor:
                 report_df = pl.DataFrame()
 
             logger.debug(f"文件处理成功: {filepath}, 基础信息: {len(base_info_records)}条, 报表数据: {report_df.height if report_df is not None else 0}行")
+
+            # --- 写入缓存 ---
+            if self.file_cache:
+                try:
+                    cache_key = self.file_cache.put(str(filepath))
+                    if base_info_df is not None and not base_info_df.is_empty():
+                        base_info_df.write_parquet(self.file_cache.base_info_path(cache_key))
+                    if report_df is not None and not report_df.is_empty():
+                        report_df.write_parquet(self.file_cache.report_data_path(cache_key))
+                except Exception as e:
+                    logger.debug(f"Cache write failed: {e}")
 
             return base_info_df, report_df
 
@@ -554,7 +583,20 @@ def create_polars_pipeline_node(
         return pl.DataFrame(), pl.DataFrame()
 
     # 使用Polars处理器
-    processor = PolarsExcelProcessor(max_workers=4, chunk_size=50)
+    file_cache = None
+    try:
+        from kedro.config import OmegaConfigLoader
+        config_loader = OmegaConfigLoader(conf_source=settings.CONF_SOURCE)
+        params = config_loader["parameters"]
+        proc_cfg = params.get("processing", {})
+        if proc_cfg.get("enable_file_cache", False):
+            cache_dir = Path(settings.CONF_SOURCE).parent / proc_cfg.get("file_cache_dir", "data/02_intermediate/file_cache")
+            file_cache = FileCache(str(cache_dir))
+            logger.info("File cache enabled: %s", cache_dir)
+    except Exception as e:
+        logger.debug("File cache init skipped: %s", e)
+
+    processor = PolarsExcelProcessor(max_workers=4, chunk_size=50, file_cache=file_cache)
     base_info_polars, report_data_polars = processor.process_excel_batch_polars(files, config)
 
     logger.info(f"Polars处理完成: {base_info_polars.height} 条基础信息, {report_data_polars.height} 条报表数据")

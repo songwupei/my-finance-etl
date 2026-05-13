@@ -589,26 +589,22 @@ _vizro_page_overview = vm.Page(
 )
 
 # 图3：中国地图 — 单位地理分布 + 资产规模
-# 自动处理 geo 数据：缺失时调用 geocoder，缺表时从 Parquet 补同步
+# 优先从 Parquet 同步 dim_unit_geo 到 DuckDB（pipeline 已写入 parquet）
 _geo_parquet = _proj_dir / "data/03_primary/dim_unit_geo.parquet"
 try:
-    from my_finance_etl.geocoder import run as run_geocoder
-    if not _geo_parquet.exists():
-        run_geocoder()
-
-    # 同步 parquet → DuckDB（_vizro_con 是只读的，得用独立可写连接）
-    _sync_conn = duckdb.connect(_vizro_db)  # 可写连接
-    try:
-        if not _table_exists(_sync_conn, "finance_data", "dim_unit_geo"):
+    if _geo_parquet.exists():
+        _sync_conn = duckdb.connect(_vizro_db)  # 可写连接
+        try:
             import polars as pl
             geo_df = pl.read_parquet(str(_geo_parquet))
-            _sync_conn.register("_geo", geo_df.to_pandas())
-            _sync_conn.execute(
-                "CREATE TABLE IF NOT EXISTS finance_data.dim_unit_geo AS SELECT * FROM _geo"
-            )
-            print(f"[flask] Synced {geo_df.height} geo rows to DuckDB from parquet")
-    finally:
-        _sync_conn.close()
+            if not geo_df.is_empty():
+                _sync_conn.register("_geo", geo_df.to_pandas())
+                _sync_conn.execute(
+                    "CREATE OR REPLACE TABLE IF NOT EXISTS finance_data.dim_unit_geo AS SELECT * FROM _geo"
+                )
+                print(f"[flask] Synced {geo_df.height} geo rows to DuckDB from parquet")
+        finally:
+            _sync_conn.close()
 except Exception as e:
     print(f"[flask] Geo sync failed: {e}")
 
@@ -842,7 +838,8 @@ def bank_account_map(data_frame=None):
         marker=dict(
             size=agg["size_scaled"].clip(lower=3),
             color=agg["total_balance"],
-            colorscale="Viridis_r",
+            colorscale="Viridis",
+            # colorscale="Viridis_r",
             showscale=True,
             colorbar=dict(
                 title="合计余额 (万元)",
@@ -854,6 +851,7 @@ def bank_account_map(data_frame=None):
         ),
         text=agg["hover_text"].to_list(),
         hoverinfo="text",
+        customdata=agg[["branch_name"]].values,
     )
     fig.update_layout(
         xaxis=dict(showticklabels=False, showgrid=False, zeroline=False, visible=False),

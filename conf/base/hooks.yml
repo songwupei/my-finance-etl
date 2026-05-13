@@ -4,10 +4,10 @@
 hooks:
   # Commands to run after the last pipeline node executes
   # after_pipeline:
-    # - {"cmd": "python -c \"from my_finance_etl.geocoder import run; run()\"", "cwd": "./"}
+    # - {"cmd": "python scripts/geocoder.py", "cwd": "./"}
 
   # Node-specific hooks
   after_nodes:
-    # 在 build_dimension_tables 完成后执行地理编码
-    build_dimension_tables:
-      - "python -c \"from my_finance_etl.geocoder import run; run()\""
+    # 独立地理编码已迁移到 enrich_geo_coordinates pipeline 节点
+    # build_dimension_tables:
+    #   - "python scripts/geocoder.py"

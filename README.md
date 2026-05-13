@@ -2,7 +2,7 @@
 
 基于 Kedro 数据管道框架的财务数据 ETL 与可视化平台，支持动态 Excel 文件扫描、指标标准化处理、组织树构建、资金账户解析、地理编码与可视化展示。
 
-**版本**: 1.3
+**版本**: 1.4
 
 ## 项目结构
 
@@ -31,7 +31,9 @@ skdata-etl/
 │   │   ├── data_warehouse.py      # 财务数据仓库构建
 │   │   ├── treasury_ingestion.py  # 资金数据摄入
 │   │   ├── treasury_processing.py # 资金数据处理
-│   │   └── treasury_warehouse.py  # 资金数据仓库构建
+│   │   ├── treasury_warehouse.py  # 资金数据仓库构建
+│   │   ├── dim_bank_branch.py     # 银行网点维度构建 (CNAPS XML 丰富)
+│   │   └── enrich_geo_coordinates.py # 地理编码节点 (高德 API + 双缓存)
 │   ├── nodes/                     # Kedro 节点
 │   ├── io/                        # 自定义 I/O
 │   ├── utils/                     # 工具函数
@@ -41,10 +43,11 @@ skdata-etl/
 │   ├── tree_builder.py            # 组织树构建器
 │   ├── duckdb_data_warehouse.py   # DuckDB 星型模型构建
 │   ├── polars_optimizer.py        # Polars 并行优化
-│   ├── geocoder.py                # 高德地图地理编码
+│   ├── file_cache.py              # 文件 MD5 缓存 (跳过未变更 Excel)
+│   ├── geocoder.py                # 高德地图地理编码 (已迁移至 scripts/)
 │   ├── pipeline_registry.py       # 管道注册
 │   └── settings.py                # 项目设置
-├── scripts/                      # (geocode_units.py 已删除，统一用 geocoder.py)
+├── scripts/                      # 独立工具脚本 (geocoder.py 等)
 ├── doc/
 │   ├── finance_warehouse_schema.md # 数据仓库 Schema 文档
 │   └── 指标对比键匹配规则.md       # 指标匹配算法说明
@@ -71,22 +74,20 @@ skdata-etl/
 5. **资金账户解析**: 解析银行账户信息，构建资金账户维度表 (27085 个账户)，优先匹配本部口径单位
 6. **星型数据模型**: 生成维度表和事实表，存储在 DuckDB (`finance_warehouse.duckdb`)
 7. **Polars 加速**: 针对 1500+ Excel 文件的并行处理优化，parent_code 选填化处理
-8. **自动地理编码**: 在维度表构建完成后，通过 Kedro 钩子自动执行高德地理编码
+8. **文件缓存加速**: 基于 MD5 的文件级缓存 (FileCache)，跳过未变更的 Excel 文件，财报和司库数据均适用，大幅减少重复解析时间
+9. **银行网点维度**: 从司库账户信息提取银行网点，通过 CNAPS XML (中国人民银行现代化支付系统行名行号) 丰富银行元数据，关联地理坐标缓存
+10. **地理编码管道化**: `enrich_geo_coordinates` 节点通过高德 API 为银行网点和企业进行地理编码，使用双层缓存策略（实体缓存 + 地址缓存），支持 TTL 过期和失败重试冷却，独立 `geocoder.py` 脚本迁移至 `scripts/` 目录
 
 ### 可视化服务
 
-8. **组织树浏览**: Flask + jsTree 交互式组织树，点击节点查看财务指标详情
-9. **财务数据查询**: 支持资产负债表/利润表/现金流量表的月度/累计/同比数据
-10. **资金账户查询**: 按单位查看银行账户余额、类型、合作银行等
-11. **指标对比**: 标准科目 vs 原始报表指标的自动匹配验证
-12. **Vizro 仪表板**: 穿透监控大屏（资产负债气泡散点 + 杠杆率分析）、单位地理分布（中国地图）
-13. **账户地图**: 全国银行账户地理分布，四维筛选（子集团/银行/省份/城市），省份→城市级联
-14. **账户余额统计分析**: 5 个分析页面（整体/子集团/银行/地理/交叉维度），柱状图+饼图+Treemap+箱线图+散点图
-15. **日报生成**: 基于 Quarto 模板的自动报告生成
-
-### 地理编码
-
-14. **单位地理定位**: 通过高德地图 API 将企业地址转换为经纬度坐标
+11. **组织树浏览**: Flask + jsTree 交互式组织树，点击节点查看财务指标详情
+12. **财务数据查询**: 支持资产负债表/利润表/现金流量表的月度/累计/同比数据
+13. **资金账户查询**: 按单位查看银行账户余额、类型、合作银行等
+14. **指标对比**: 标准科目 vs 原始报表指标的自动匹配验证
+15. **Vizro 仪表板**: 穿透监控大屏（资产负债气泡散点 + 杠杆率分析）、单位地理分布（中国地图）
+16. **账户地图**: 全国银行账户地理分布，四维筛选（子集团/银行/省份/城市），省份→城市级联
+17. **账户余额统计分析**: 5 个分析页面（整体/子集团/银行/地理/交叉维度），柱状图+饼图+Treemap+箱线图+散点图
+18. **日报生成**: 基于 Quarto 模板的自动报告生成
 
 ## 快速开始
 
@@ -170,7 +171,8 @@ python flask_app.py
 | `dim_organization_tree` | 组织架构树 | 2830 |
 | `dim_treasury_account` | 资金账户 | 27085 |
 | `dim_treasury_account_type` | 账户类型 | 34 |
-| `dim_unit_geo` | 单位地理坐标 | 1419 |
+| `dim_bank_branch` | 银行网点 (含 CNAPS 元数据) | 2,590 |
+| `dim_unit_geo` | 单位地理坐标 | 1,419 |
 
 ### 事实表
 
@@ -214,7 +216,8 @@ kedro registry list    # 查看所有已注册管道
 | `process` | 指标标准化处理 |
 | `warehouse` | 财务数据仓库构建 |
 | `finance_report` | 财务快报完整链路 (Polars 摄入 → 处理 → 入库) |
-| `treasury_data` | 资金数据完整链路 |
+| `treasury_data` | 资金数据完整链路 (含银行网点维度 + 地理编码) |
+| `dim_bank_branch` | 银行网点维度构建 (独立运行) |
 
 ### 配置说明
 
@@ -258,6 +261,17 @@ tail -f logs/my_finance_etl.log
 ```
 
 ## 版本历史
+
+### v1.4 (2026-05-13)
+
+- **文件缓存加速** ⚡: 新增 `file_cache.py` — 基于 MD5 的文件级缓存模块，跳过未变更的 Excel 文件解析；`polars_optimizer.py` 和 `treasury_ingestion.py` 均已集成，支持财报（base_info + report_data）和司库（treasury）双模式缓存；参数通过 `parameters.yml` 的 `processing.enable_file_cache` 开关控制
+- **银行网点维度管道** 🏦: 新增 `dim_bank_branch.py` pipeline 节点 — 从司库账户信息的 `institution_code` 提取唯一银行网点 (2,590 个)，关联 CNAPS XML (中国人民银行现代化支付系统行名行号) 丰富银行名称、类型、地区代码等 15 个元数据字段，通过 `geo_bank.parquet` 缓存关联经纬度坐标
+- **地理编码管道化** 🌍: 新增 `enrich_geo_coordinates.py` pipeline 节点 — 将地理编码从 `after_nodes` 钩子重构为正式 pipeline 节点，银行网点通过高德 POI 搜索编码，企业通过高德 geocode 编码；采用双层缓存策略（实体缓存 geo_enterprise/geo_bank + 地址缓存 geo_address），支持地址 TTL 过期 (12 个月) 和失败重试冷却 (3 个月)；`geocoder.py` 从 `src/` 迁移至 `scripts/`，保留为独立修复脚本
+- **DuckDB 数仓扩展** 📦: `duckdb_data_warehouse.py` 新增 `dim_bank_branch` 表加载 (含 `institution_code` 索引)；`treasury_warehouse.py` 新增 `dim_bank_branch_enriched` 和 `dim_unit_geo` 同步写入
+- **Pipeline 注册重构** 🔗: `pipeline_registry.py` 注册 `dim_bank_branch` 和 `enrich_geo_coordinates` pipeline；`treasury_full` 重构为 5 阶段链式管道 (摄入 → 处理 → 银行网点 → 地理编码 → 数仓)；新增 `dim_bank_branch` 独立管道入口
+- **配置扩展** 📝: `catalog.yml` 新增 `dim_bank_branch`、`dim_bank_branch_enriched`、`dim_unit_geo` 三个数据集；`parameters.yml` 新增 `processing.enable_file_cache`/`processing.file_cache_dir`、`bank_branch.cnaps_xml_path`/`bank_branch.geo_cache_path`、`geo.*` 配置节；`hooks.yml` 地理编码钩子注释更新为 `enrich_geo_coordinates` 管道引用
+- **可视化优化** 🎨: `flask_app.py` 账户地图散点图颜色方案从 Viridis_r 改为 Viridis；银行网点关联 `customdata` 字段支持点击查看网点名称；`dim_unit_geo` 同步逻辑从 `CREATE TABLE IF NOT EXISTS` 改为 `CREATE OR REPLACE TABLE IF NOT EXISTS` 确保数据刷新；移除已删除 `geocoder` 的直接 import 依赖
+- **安全修复** 🔧: `hooks.py` `after_nodes` 钩子读取增加中间 None 安全访问（`.get(hook_type, {}).get(...)` → `.get(hook_type) or {}`），避免 YAML 注释导致 `NoneType` 报错
 
 ### v1.3 (2026-05-12)
 

@@ -59,6 +59,18 @@ dim_treasury_account_type:
   type: my_finance_etl.io.polars_parquet_dataset.PolarsParquetDataset
   filepath: data/03_primary/dim_treasury_account_type.parquet
 
+dim_bank_branch:
+  type: my_finance_etl.io.polars_parquet_dataset.PolarsParquetDataset
+  filepath: data/03_primary/dim_bank_branch.parquet
+
+dim_bank_branch_enriched:
+  type: my_finance_etl.io.polars_parquet_dataset.PolarsParquetDataset
+  filepath: data/03_primary/dim_bank_branch.parquet
+
+dim_unit_geo:
+  type: my_finance_etl.io.polars_parquet_dataset.PolarsParquetDataset
+  filepath: data/03_primary/dim_unit_geo.parquet
+
 # ========== 司库-账户事实表 ==========
 fact_treasury_account_balance:
   type: my_finance_etl.io.polars_parquet_dataset.PolarsParquetDataset

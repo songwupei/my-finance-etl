@@ -266,7 +266,7 @@ class DynamicExcelLoaderHooks:
 
         if config is None:
             return
-        node_hooks = (config.get("hooks") or {}).get(hook_type, {}).get(node_name, [])
+        node_hooks = ((config.get("hooks") or {}).get(hook_type) or {}).get(node_name, [])
         if not node_hooks:
             return
 

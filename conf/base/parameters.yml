@@ -12,6 +12,8 @@ database:
 
 processing:
   custom_scripts_dir: "scripts"
+  enable_file_cache: true
+  file_cache_dir: "data/02_intermediate/file_cache"
 
 organization:
   root_code: "91110000710924910F"   # 集团总部统一社会信用代码
@@ -27,3 +29,14 @@ map:
   center_lon: 104.195        # 中国地理中心
   center_lat: 35.675
   height: 800               # 地图高度
+
+bank_branch:
+  cnaps_xml_path: "/home/song/NutstoreFiles/8-MyData/BankInfo/CCMSZDT0401.xml"
+  geo_cache_path: "/home/song/NutstoreFiles/8-MyData/GeoData/geo_bank.parquet"
+
+geo:
+  enterprise_cache_path: "/home/song/NutstoreFiles/8-MyData/GeoData/geo_enterprise.parquet"
+  address_cache_path: "/home/song/NutstoreFiles/8-MyData/GeoData/geo_address.parquet"
+  failed_cache_path: "/home/song/NutstoreFiles/8-MyData/GeoData/geo_address_failed.parquet"
+  address_ttl_months: 12
+  failed_retry_months: 3

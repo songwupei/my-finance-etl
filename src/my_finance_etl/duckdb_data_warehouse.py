@@ -179,6 +179,7 @@ class DuckDBDataWarehouse:
         dim_treasury_account: pl.DataFrame,
         dim_treasury_account_type: pl.DataFrame,
         fact_treasury_account_balance: pl.DataFrame,
+        dim_bank_branch: pl.DataFrame = None,
     ) -> None:
         """直接加载司库 DataFrame 到 DuckDB 表。"""
         self.logger.info("加载司库表到 DuckDB...")
@@ -206,6 +207,13 @@ class DuckDBDataWarehouse:
             self.conn.execute("CREATE INDEX IF NOT EXISTS idx_fab_account ON finance_data.fact_treasury_account_balance(account_id)")
             self.conn.execute("ANALYZE finance_data.fact_treasury_account_balance")
             self.logger.info(f"  fact_treasury_account_balance: {len(fact_treasury_account_balance)} rows")
+
+        if dim_bank_branch is not None and not dim_bank_branch.is_empty():
+            self.conn.register("_dim_bb", dim_bank_branch)
+            self.conn.execute("CREATE OR REPLACE TABLE finance_data.dim_bank_branch AS SELECT * FROM _dim_bb")
+            self.conn.execute("CREATE INDEX IF NOT EXISTS idx_bb_code ON finance_data.dim_bank_branch(institution_code)")
+            self.conn.execute("ANALYZE finance_data.dim_bank_branch")
+            self.logger.info(f"  dim_bank_branch: {len(dim_bank_branch)} rows")
 
     def optimize_for_analytical_queries(self) -> None:
         """为分析查询优化DuckDB数据库。"""
