@@ -2,7 +2,7 @@
 
 基于 Kedro 数据管道框架的财务数据 ETL 与可视化平台，支持动态 Excel 文件扫描、指标标准化处理、组织树构建、资金账户解析、地理编码与可视化展示。
 
-**版本**: 1.5.1
+**版本**: 1.5.2
 
 ## 项目结构
 
@@ -279,6 +279,12 @@ tail -f logs/my_finance_etl.log
   - `dashboard/panreg.py`: Vizro 页面 "穿透监管"（Card 组件嵌入 Markdown 链接）
   - `navigation.py`: 导航菜单"分析"板块新增 "panreg" 页面入口（NavBar 二级菜单同步）
   - `__init__.py` + `routes/__init__.py`: 注册 `panreg_bp` 蓝印
+
+### v1.5.2 (2026-05-14)
+
+- **穿透监管报告扩展** 🔍: PanReg 模块新增第二个报告端点
+  - `dashboard/panreg.py`: 原有 Card 重构为"逃逸账户检测报告"（`/panreg-report`），新增"账户数量异常检测报告" Card（`/panreg-report1`）
+  - `routes/panreg.py`: 新增 `/panreg-report1` 端点，指向 `accountpro_PanReg_report.html` 静态报告文件
 
 ### v1.5 (2026-05-14)
 
