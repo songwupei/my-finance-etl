@@ -84,6 +84,8 @@
             cursor: pointer; background: #2c3e50; color: #fff; white-space: nowrap;
         }
         .report-gen-bar button:hover { background: #1a2a36; }
+        .report-gen-bar button.btn-send { background: #27ae60; }
+        .report-gen-bar button.btn-send:hover { background: #219a52; }
         .report-gen-bar .gen-status {
             font-size: 11px; color: #2c3e50; margin-left: auto; flex-basis: 100%;
             margin-top: 4px;
@@ -173,6 +175,7 @@
             <label for="reportDate">📰 日报日期</label>
             <input type="date" id="reportDate" value="2026-04-29">
             <button id="genReportBtn">生成日报</button>
+            <button id="sendReportBtn" class="btn-send">发送日报</button>
             <span class="gen-status" id="reportStatus"></span>
         </div>
         <div class="tree-wrapper">
@@ -495,6 +498,35 @@ $(document).ready(function() {
             })
             .always(function() {
                 btn.prop('disabled', false).text('生成日报');
+            });
+    });
+
+    // ========== 10b. 发送日报 ==========
+    $('#sendReportBtn').on('click', function() {
+        var dateVal = $('#reportDate').val();
+        if (!dateVal) { alert('请选择日报日期'); return; }
+        var parts = dateVal.split('-');
+        var year = parts[0], month = parts[1], day = parts[2];
+
+        var btn = $(this);
+        btn.prop('disabled', true).text('发送中...');
+        $('#reportStatus').html('<span style="color:#4285f4;">⏳ 正在发送日报，请稍后...</span>');
+
+        $.getJSON('/api/send_report', { year: year, month: month, day: day })
+            .done(function(data) {
+                if (data.success) {
+                    var msg = '✅ 邮件已发送至 ' + (data.to || '收件人');
+                    if (data.generated) msg += ' (已自动生成PDF)';
+                    $('#reportStatus').html('<span style="color:#27ae60;">' + msg + '</span>');
+                } else {
+                    $('#reportStatus').html('<span style="color:#d9534f;">❌ 发送失败：' + (data.error || '未知错误') + '</span>');
+                }
+            })
+            .fail(function() {
+                $('#reportStatus').html('<span style="color:#d9534f;">❌ 请求失败，请检查后端日志</span>');
+            })
+            .always(function() {
+                btn.prop('disabled', false).text('发送日报');
             });
     });
 

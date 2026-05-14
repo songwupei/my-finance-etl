@@ -40,3 +40,8 @@ geo:
   failed_cache_path: "/home/song/NutstoreFiles/8-MyData/GeoData/geo_address_failed.parquet"
   address_ttl_months: 12
   failed_retry_months: 3
+
+email:
+  from: "songwupei@qq.com"
+  to: "songwupei@163.com"
+  subject_prefix: "穿透监管日报（账户）"
