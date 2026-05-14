@@ -310,12 +310,11 @@ def get_treasury_business_types():
 
 @app.route("/api/generate_report")
 def generate_report():
-    # TODO(work): 暂时忽略日期参数，后续恢复
-    # year = request.args.get("year", type=int)
-    # month = request.args.get("month", type=int)
-    # day = request.args.get("day", type=int)
-    # if not all([year, month, day]):
-    #     return jsonify({"success": False, "error": "缺少日期参数"}), 400
+    year = request.args.get("year", type=int)
+    month = request.args.get("month", type=int)
+    day = request.args.get("day", type=int)
+    if not all([year, month, day]):
+        return jsonify({"success": False, "error": "缺少日期参数 year/month/day"}), 400
 
     qmd_template = Path("/home/song/NutstoreFiles/5-Quartools/PrettyDoc/SiKuReport/daily_report_account-gb.qmd")
     if not qmd_template.exists():
@@ -324,13 +323,11 @@ def generate_report():
     output_dir = _proj_dir / "generated_reports"
     output_dir.mkdir(exist_ok=True)
 
-    # TODO(work): 日期参数暂忽略，basename 仅用时间戳
-    timestamp = int(time.time())
-    report_basename = f"daily_report_{timestamp}"
+    report_basename = f"daily_report_{year}{month:02d}{day:02d}"
 
     cmd = [
         "micromamba", "run", "-n", "quarto", "bash", "-c",
-        "cd /home/song/NutstoreFiles/5-Quartools/PrettyDoc && quarto render SiKuReport/daily_report_account-gb.qmd"
+        f"cd /home/song/NutstoreFiles/5-Quartools/PrettyDoc && quarto render SiKuReport/daily_report_account-gb.qmd -P year:{year} -P month:{month} -P day:{day}"
     ]
 
     try:
