@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "my_finance_etl"
-version = "1.4.4"
+version = "1.5.0"
 description = "财务数据ETL与可视化平台"
 authors = [{name = "Song"}]
 readme = "README.md"
@@ -18,10 +18,16 @@ dependencies = [
     "flask>=2.0.0",
     "pyyaml>=6.0.0",
     "python-dotenv>=1.0.0",
+    "vizro>=0.1.0",
+    "dash>=2.0.0",
+    "numpy>=1.24.0",
+    "plotly>=5.0.0",
+    "polars>=1.0.0",
 ]
 
 [project.scripts]
 my-finance-etl = "src.my_finance_etl.__main__:main"
+my-finance-web = "src.my_finance_web:main"
 
 [tool.kedro]
 package_name = "my_finance_etl"
