@@ -18,13 +18,14 @@ from .balance import (
     _vizro_page_balance_geo,
     _vizro_page_balance_cross,
 )
+from .panreg import _vizro_page_panreg
 
 _vizro_navigation = vm.Navigation(
     pages={
         "首页": ["home"],
         "地理": ["china-map"],
         "监控": ["penetration-monitor", "bank-account-map"],
-        "分析": ["relationship-analysis", "account-detail", "overview"],
+        "分析": ["relationship-analysis", "account-detail", "overview", "panreg"],
         "账户余额统计分析": ["balance-overview", "balance-subgroup", "balance-bank", "balance-geo", "balance-cross"],
     },
     nav_selector=vm.NavBar(
@@ -42,7 +43,7 @@ _vizro_navigation = vm.Navigation(
                 label="账户",
                 pages={
                     "监控": ["penetration-monitor", "bank-account-map"],
-                    "分析": ["relationship-analysis", "account-detail", "overview"],
+                    "分析": ["relationship-analysis", "account-detail", "overview", "panreg"],
                     "账户余额统计分析": ["balance-overview", "balance-subgroup", "balance-bank", "balance-geo", "balance-cross"],
                 },
             ),
@@ -52,7 +53,7 @@ _vizro_navigation = vm.Navigation(
 
 _vizro_dashboard = vm.Dashboard(
     pages=[_vizro_page_home, _vizro_page_monitor, _vizro_page_relationship,
-           _vizro_page_account_detail,
+           _vizro_page_account_detail, _vizro_page_panreg,
            _vizro_page_overview, _vizro_page_map, _vizro_page_bank_map,
            _vizro_page_balance_overview, _vizro_page_balance_subgroup,
            _vizro_page_balance_bank, _vizro_page_balance_geo, _vizro_page_balance_cross],

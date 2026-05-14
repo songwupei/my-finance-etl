@@ -2,7 +2,7 @@
 
 基于 Kedro 数据管道框架的财务数据 ETL 与可视化平台，支持动态 Excel 文件扫描、指标标准化处理、组织树构建、资金账户解析、地理编码与可视化展示。
 
-**版本**: 1.5
+**版本**: 1.5.1
 
 ## 项目结构
 
@@ -63,8 +63,8 @@ skdata-etl/
 │   ├── config.py                   # 集中配置 (DB/YAML/邮件/Quarto)
 │   ├── database.py                 # DuckDB 连接与查询工具
 │   ├── callbacks.py                # Dash 级联筛选回调
-│   ├── routes/                     # 路由蓝图 (tree/treasury/report/geo)
-│   └── dashboard/                  # Vizro 仪表板模块 (home/map/balance/…)
+│   ├── routes/                     # 路由蓝图 (tree/treasury/report/geo/panreg)
+│   └── dashboard/                  # Vizro 仪表板模块 (home/map/balance/panreg/…)
 ├── flask_app.py                   # Flask 入口 (6行薄壳 → src/my_finance_web)
 ├── pyproject.toml                 # 项目配置
 └── README.md                      # 本文档
@@ -85,18 +85,19 @@ skdata-etl/
 9. **银行网点维度**: 从司库账户信息提取银行网点，通过 CNAPS XML (中国人民银行现代化支付系统行名行号) 丰富银行元数据，关联地理坐标缓存
 10. **地理编码管道化**: `enrich_geo_coordinates` 节点通过高德 API 为银行网点和企业进行地理编码，使用双层缓存策略（实体缓存 + 地址缓存），支持 TTL 过期和失败重试冷却，独立 `geocoder.py` 脚本迁移至 `scripts/` 目录
 11. **Web 模块化架构** 🏗️: `flask_app.py` 从 ~1436 行单体文件重构为 `src/my_finance_web/` 模块包 — 配置集中化 (`config.py`)、数据库层抽象 (`database.py`)、路由蓝图分离 (`routes/`)、Dash 回调独立 (`callbacks.py`)、Vizro 仪表板子模块化 (`dashboard/`)，支持 `my-finance-web` CLI 入口
+12. **穿透监管报告** 🔍: 新增 PanReg 穿透监管模块 — 集团成员单位账户数量异常检测报告，Vizro 页面嵌入 Card 链接，Flask 路由 `/panreg-report` 直接返回 HTML 报告文件
 
 ### 可视化服务
 
-12. **组织树浏览**: Flask + jsTree 交互式组织树，点击节点查看财务指标详情
-13. **财务数据查询**: 支持资产负债表/利润表/现金流量表的月度/累计/同比数据
-14. **资金账户查询**: 按单位查看银行账户余额、类型、合作银行等
-15. **指标对比**: 标准科目 vs 原始报表指标的自动匹配验证
-16. **Vizro 仪表板**: 穿透监控大屏（资产负债气泡散点 + 杠杆率分析）、单位地理分布（中国地图）
-17. **账户地图**: 全国银行账户地理分布，四维筛选（子集团/银行/省份/城市），省份→城市级联
-18. **账户余额统计分析**: 5 个分析页面（整体/子集团/银行/地理/交叉维度），柱状图+饼图+Treemap+箱线图+散点图
-19. **日报生成**: 基于 Quarto 模板的自动报告生成
-20. **日报邮件发送**: 一键生成 PDF 并通过 SMTP 脚本发送日报邮件，支持自动生成 PDF 后发送，日期参数联动
+13. **组织树浏览**: Flask + jsTree 交互式组织树，点击节点查看财务指标详情
+14. **财务数据查询**: 支持资产负债表/利润表/现金流量表的月度/累计/同比数据
+15. **资金账户查询**: 按单位查看银行账户余额、类型、合作银行等
+16. **指标对比**: 标准科目 vs 原始报表指标的自动匹配验证
+17. **Vizro 仪表板**: 穿透监控大屏（资产负债气泡散点 + 杠杆率分析）、单位地理分布（中国地图）
+18. **账户地图**: 全国银行账户地理分布，四维筛选（子集团/银行/省份/城市），省份→城市级联
+19. **账户余额统计分析**: 5 个分析页面（整体/子集团/银行/地理/交叉维度），柱状图+饼图+Treemap+箱线图+散点图
+20. **日报生成**: 基于 Quarto 模板的自动报告生成
+21. **日报邮件发送**: 一键生成 PDF 并通过 SMTP 脚本发送日报邮件，支持自动生成 PDF 后发送，日期参数联动
 
 ## 快速开始
 
@@ -270,6 +271,14 @@ tail -f logs/my_finance_etl.log
 ```
 
 ## 版本历史
+
+### v1.5.1 (2026-05-14)
+
+- **穿透监管报告** 🔍: 新增 PanReg 穿透监管功能模块 — 集团成员单位账户数量异常检测报告
+  - `routes/panreg.py`: 路由蓝印 `panreg_bp`，端点 `/panreg-report` 返回 `account_PanReg_report.html` 静态报告文件
+  - `dashboard/panreg.py`: Vizro 页面 "穿透监管"（Card 组件嵌入 Markdown 链接）
+  - `navigation.py`: 导航菜单"分析"板块新增 "panreg" 页面入口（NavBar 二级菜单同步）
+  - `__init__.py` + `routes/__init__.py`: 注册 `panreg_bp` 蓝印
 
 ### v1.5 (2026-05-14)
 

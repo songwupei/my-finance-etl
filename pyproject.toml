@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "my_finance_etl"
-version = "1.5.0"
+version = "1.5.1"
 description = "财务数据ETL与可视化平台"
 authors = [{name = "Song"}]
 readme = "README.md"

@@ -13,12 +13,13 @@ def create_app():
         static_folder=str(_proj_dir / "static"),
     )
 
-    from .routes import tree_bp, treasury_bp, report_bp, geo_bp
+    from .routes import tree_bp, treasury_bp, report_bp, geo_bp, panreg_bp
 
     app.register_blueprint(tree_bp)
     app.register_blueprint(treasury_bp)
     app.register_blueprint(report_bp)
     app.register_blueprint(geo_bp)
+    app.register_blueprint(panreg_bp)
 
     from .dashboard import build_dashboard
 
