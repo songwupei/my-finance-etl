@@ -254,6 +254,61 @@ kedro registry list    # 查看所有已注册管道
 - **修改可视化界面**: 编辑 `templates/index.html` 和 `flask_app.py`
 - **添加新的 Vizro 页面**: 在 `flask_app.py` 中添加 `vm.Page`
 
+### Git 分支规范
+
+本项目遵循 [Conventional Commits](https://www.conventionalcommits.org/) 提交规范。
+
+**分支策略**：
+
+| 分支类型 | 命名格式 | 说明 |
+|---|---|---|
+| 主线 | `main` | 稳定发布分支，只接受合并，禁止直接提交 |
+| 功能分支 | `feature/<name>` | 新功能开发，从 `main` 检出，完成后合并回 `main` |
+| 修复分支 | `fix/<name>` | Bug 修复，从 `main` 检出，完成后合并回 `main` |
+
+**当前活跃分支**：
+- `main` — 稳定主线（当前）
+- `feature/shiny` — Vizro 仪表板迁移至 Shiny for Python 探索
+
+**Commit Message 格式**：
+
+```
+<type>(<scope>): <subject>
+```
+
+| type | 说明 |
+|---|---|
+| `feat` | 新功能 |
+| `fix` | Bug 修复 |
+| `docs` | 文档变更 |
+| `refactor` | 代码重构（非功能、非修复） |
+| `perf` | 性能优化 |
+| `chore` | 构建、工具、依赖变更 |
+
+**示例**：
+```
+feat(web): 新增穿透监管 PanReg 模块
+refactor(web): flask_app.py 拆解为 src/my_finance_web/ 模块包
+docs: 新增 Git 分支规范说明
+```
+
+**工作流程**：
+
+```bash
+# 从 main 创建功能分支
+git checkout main && git pull
+git checkout -b feature/<name>
+
+# 开发完成后提交
+git add .
+git commit -m "feat(scope): 功能描述"
+
+# 合并回 main
+git checkout main
+git merge feature/<name>
+git push origin main
+```
+
 ## 故障排除
 
 ### 常见问题
