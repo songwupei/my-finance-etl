@@ -1,0 +1,14 @@
+/* 财务仪表板 — 自定义样式 */
+
+/* 导航栏品牌 */
+.navbar-brand { font-weight: 700; letter-spacing: 1px; }
+
+/* KPI 数值突出 */
+.card table { font-size: 0.95rem; }
+.card table td:last-child { font-weight: 700; color: #2c3e50; }
+
+/* 图表卡片间距 */
+.card + .card { margin-top: 1.25rem; }
+
+/* DataGrid 自适应 */
+.dataframe-container { max-height: 520px; overflow: auto; }

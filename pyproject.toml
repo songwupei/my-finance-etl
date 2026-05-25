@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "my_finance_etl"
-version = "1.5.3"
+version = "1.5.1"
 description = "财务数据ETL与可视化平台"
 authors = [{name = "Song"}]
 readme = "README.md"
@@ -20,6 +20,9 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "vizro>=0.1.0",
     "dash>=2.0.0",
+    "shiny>=1.0.0",
+    "shinywidgets>=0.3.0",
+    "faicons>=0.2.0",
     "numpy>=1.24.0",
     "plotly>=5.0.0",
     "polars>=1.0.0",

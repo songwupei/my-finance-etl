@@ -1,7 +1,6 @@
 """账户地图 + AgGrid — 账户地理分布气泡图."""
 import numpy as np
 import yaml
-import vizro.actions as va
 import vizro.models as vm
 from vizro.models.types import capture
 from vizro.tables import dash_ag_grid
@@ -108,12 +107,10 @@ _vizro_page_bank_map = vm.Page(
             figure=dash_ag_grid(
                 data_frame=_account_detail_df,
                 dashGridOptions={"pagination": True, "domLayout": "autoHeight",
-                                 "columnDefs": _account_detail_column_defs,
-                                 "defaultColDef": {"filter": True, "resizable": True}},
+                                 "columnDefs": _account_detail_column_defs},
             ),
-            title="账户明细表",
+            title="点击气泡筛选此表",
         ),
-        vm.Button(text="📥 导出 CSV", actions=va.export_data(targets=["clicked-branch-table"])),
     ],
     controls=[
         vm.Filter(column="sub_group_name",

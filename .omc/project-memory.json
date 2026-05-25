@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1778681973679,
+  "lastScanned": 1779670757867,
   "projectRoot": "/home/song/NutstoreFiles/5-Quartools/app_py/skdata-etl",
   "techStack": {
     "languages": [
@@ -53,7 +53,7 @@
       "path": "__pycache__",
       "purpose": null,
       "fileCount": 3,
-      "lastAccessed": 1778681973652,
+      "lastAccessed": 1779670757843,
       "keyFiles": [
         "flask_app.cpython-313.pyc",
         "settings.cpython-313.pyc",
@@ -64,21 +64,21 @@
       "path": "conf",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1778681973660,
+      "lastAccessed": 1779670757853,
       "keyFiles": []
     },
     "data": {
       "path": "data",
       "purpose": "Data files",
       "fileCount": 1,
-      "lastAccessed": 1778681973663,
+      "lastAccessed": 1779670757855,
       "keyFiles": []
     },
     "doc": {
       "path": "doc",
       "purpose": null,
       "fileCount": 4,
-      "lastAccessed": 1778681973667,
+      "lastAccessed": 1779670757857,
       "keyFiles": [
         "account_map_detail_table_plan.md",
         "data_standard_upgrade_plan.md",
@@ -89,28 +89,25 @@
     "generated_reports": {
       "path": "generated_reports",
       "purpose": null,
-      "fileCount": 6,
-      "lastAccessed": 1778681973668,
+      "fileCount": 2,
+      "lastAccessed": 1779670757857,
       "keyFiles": [
-        "daily_report_1778047232.docx",
-        "daily_report_1778047232.pdf",
-        "daily_report_1778229453.docx",
-        "daily_report_1778229453.pdf",
-        "daily_report_1778290214.docx"
+        "daily_report_20260429.docx",
+        "daily_report_20260429.pdf"
       ]
     },
     "logs": {
       "path": "logs",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1778681973669,
+      "lastAccessed": 1779670757858,
       "keyFiles": []
     },
     "scripts": {
       "path": "scripts",
       "purpose": "Build/utility scripts",
       "fileCount": 4,
-      "lastAccessed": 1778681973670,
+      "lastAccessed": 1779670757859,
       "keyFiles": [
         "README.md",
         "financereport_template.xlsx",
@@ -122,21 +119,21 @@
       "path": "src",
       "purpose": "Source code",
       "fileCount": 0,
-      "lastAccessed": 1778681973670,
+      "lastAccessed": 1779670757860,
       "keyFiles": []
     },
     "static": {
       "path": "static",
       "purpose": "Static files",
       "fileCount": 0,
-      "lastAccessed": 1778681973671,
+      "lastAccessed": 1779670757860,
       "keyFiles": []
     },
     "templates": {
       "path": "templates",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1778681973672,
+      "lastAccessed": 1779670757861,
       "keyFiles": [
         "index.html"
       ]
@@ -144,213 +141,99 @@
   },
   "hotPaths": [
     {
-      "path": "flask_app.py",
-      "accessCount": 41,
-      "lastAccessed": 1778743366885,
+      "path": "src/my_finance_shiny/pages/smart_query.py",
+      "accessCount": 22,
+      "lastAccessed": 1779677555355,
       "type": "file"
     },
     {
-      "path": "src/my_finance_web/dashboard/panreg.py",
-      "accessCount": 10,
-      "lastAccessed": 1778754657398,
-      "type": "file"
-    },
-    {
-      "path": "src/my_finance_web/dashboard/navigation.py",
-      "accessCount": 9,
-      "lastAccessed": 1778754615857,
-      "type": "file"
-    },
-    {
-      "path": "templates/index.html",
-      "accessCount": 7,
-      "lastAccessed": 1778722664746,
-      "type": "file"
-    },
-    {
-      "path": "src/my_finance_web/__init__.py",
-      "accessCount": 7,
-      "lastAccessed": 1778755188109,
-      "type": "file"
-    },
-    {
-      "path": "src/my_finance_web/routes/__init__.py",
-      "accessCount": 6,
-      "lastAccessed": 1778755188035,
-      "type": "file"
-    },
-    {
-      "path": "README.md",
+      "path": "src/my_finance_shiny/app.py",
       "accessCount": 5,
-      "lastAccessed": 1778741667413,
+      "lastAccessed": 1779672806507,
       "type": "file"
     },
     {
-      "path": "pyproject.toml",
+      "path": "src/my_finance_shiny/data.py",
       "accessCount": 5,
-      "lastAccessed": 1778754657374,
-      "type": "file"
-    },
-    {
-      "path": "conf/base/parameters.yml",
-      "accessCount": 4,
-      "lastAccessed": 1778742210027,
-      "type": "file"
-    },
-    {
-      "path": "src/my_finance_web/dashboard/__init__.py",
-      "accessCount": 3,
-      "lastAccessed": 1778754615803,
-      "type": "file"
-    },
-    {
-      "path": "src/my_finance_web/dashboard/home.py",
-      "accessCount": 3,
-      "lastAccessed": 1778754657325,
-      "type": "file"
-    },
-    {
-      "path": "src/my_finance_web/routes/panreg.py",
-      "accessCount": 3,
-      "lastAccessed": 1778755195494,
-      "type": "file"
-    },
-    {
-      "path": "src/my_finance_web/routes/tree.py",
-      "accessCount": 2,
-      "lastAccessed": 1778742891513,
-      "type": "file"
-    },
-    {
-      "path": "src/my_finance_web/dashboard/balance.py",
-      "accessCount": 2,
-      "lastAccessed": 1778754372998,
-      "type": "file"
-    },
-    {
-      "path": "src/my_finance_web/dashboard/account_detail.py",
-      "accessCount": 2,
-      "lastAccessed": 1778754373127,
-      "type": "file"
-    },
-    {
-      "path": "src/my_finance_web/dashboard/data.py",
-      "accessCount": 2,
-      "lastAccessed": 1778754390884,
-      "type": "file"
-    },
-    {
-      "path": "src/my_finance_web/dashboard/map.py",
-      "accessCount": 2,
-      "lastAccessed": 1778754390915,
-      "type": "file"
-    },
-    {
-      "path": "src/my_finance_web/config.py",
-      "accessCount": 2,
-      "lastAccessed": 1778754426535,
-      "type": "file"
-    },
-    {
-      "path": "src/my_finance_web/database.py",
-      "accessCount": 2,
-      "lastAccessed": 1778754426632,
-      "type": "file"
-    },
-    {
-      "path": "src/my_finance_web/callbacks.py",
-      "accessCount": 2,
-      "lastAccessed": 1778755195624,
-      "type": "file"
-    },
-    {
-      "path": "__init__.py",
-      "accessCount": 1,
-      "lastAccessed": 1778741667858,
+      "lastAccessed": 1779674653904,
       "type": "file"
     },
     {
       "path": "requirements.txt",
-      "accessCount": 1,
-      "lastAccessed": 1778741694602,
+      "accessCount": 4,
+      "lastAccessed": 1779673373354,
       "type": "file"
     },
     {
-      "path": "kedro.yml",
-      "accessCount": 1,
-      "lastAccessed": 1778741695019,
+      "path": "src/my_finance_shiny/config.py",
+      "accessCount": 2,
+      "lastAccessed": 1779688147931,
       "type": "file"
     },
     {
-      "path": "AGENTS.md",
+      "path": "doc/querychat_express_example.py",
       "accessCount": 1,
-      "lastAccessed": 1778741695372,
+      "lastAccessed": 1779671280495,
       "type": "file"
     },
     {
-      "path": "query_treasury_account.py",
+      "path": "doc/querychat_core_example.py",
       "accessCount": 1,
-      "lastAccessed": 1778741695448,
+      "lastAccessed": 1779671281772,
       "type": "file"
     },
     {
-      "path": "src/my_finance_etl/__init__.py",
+      "path": "src/my_finance_shiny/pages/balance_geo.py",
       "accessCount": 1,
-      "lastAccessed": 1778741722899,
+      "lastAccessed": 1779671824640,
       "type": "file"
     },
     {
-      "path": "src/my_finance_etl/settings.py",
+      "path": "src/my_finance_shiny/pages/smart_query_greeting.md",
       "accessCount": 1,
-      "lastAccessed": 1778741723503,
+      "lastAccessed": 1779672562277,
       "type": "file"
     },
     {
-      "path": "src/my_finance_etl/__main__.py",
+      "path": "src/my_finance_shiny/pages/smart_query_data_description.md",
       "accessCount": 1,
-      "lastAccessed": 1778741723706,
+      "lastAccessed": 1779672563320,
       "type": "file"
     },
     {
-      "path": "src/my_finance_etl/pipeline_registry.py",
+      "path": "src/my_finance_shiny/pages/smart_query_extra_instructions.md",
       "accessCount": 1,
-      "lastAccessed": 1778741723814,
+      "lastAccessed": 1779672564145,
       "type": "file"
     },
     {
-      "path": "scripts/README.md",
+      "path": "src/__init__.py",
       "accessCount": 1,
-      "lastAccessed": 1778741808200,
+      "lastAccessed": 1779672934921,
       "type": "file"
     },
     {
-      "path": "src/my_finance_etl/io/README.md",
+      "path": "src/my_finance_shiny/__init__.py",
       "accessCount": 1,
-      "lastAccessed": 1778741808492,
+      "lastAccessed": 1779672935844,
       "type": "file"
     },
     {
-      "path": "src/my_finance_web/routes/treasury.py",
+      "path": "src/my_finance_web/__init__.py",
       "accessCount": 1,
-      "lastAccessed": 1778742861367,
+      "lastAccessed": 1779687999843,
       "type": "file"
     },
     {
-      "path": "src/my_finance_web/routes/report.py",
+      "path": "src/my_finance_web/config.py",
       "accessCount": 1,
-      "lastAccessed": 1778742862474,
+      "lastAccessed": 1779688000193,
       "type": "file"
     },
     {
-      "path": "src/my_finance_web/routes/geo.py",
+      "path": "src/my_finance_shiny/database.py",
       "accessCount": 1,
-      "lastAccessed": 1778742863413,
-      "type": "file"
-    },
-    {
-      "path": "src/my_finance_web/dashboard/account_map.py",
-      "accessCount": 1,
-      "lastAccessed": 1778743258153,
+      "lastAccessed": 1779688148066,
       "type": "file"
     }
   ],
