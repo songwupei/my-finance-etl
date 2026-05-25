@@ -2,47 +2,19 @@
 
 Pre-loads at import time; each Shiny session clones via @reactive.calc.
 """
-import time
-import duckdb
 import polars as pl
 
-from .config import get_db_path, _proj_dir
-
-
-def _connect_with_retry(db_path, read_only=False, retries=3, delay=2):
-    """Connect to DuckDB with retry on lock conflicts (e.g. Nutstore sync)."""
-    for i in range(retries):
-        try:
-            return duckdb.connect(db_path, read_only=read_only)
-        except duckdb.IOException:
-            if i < retries - 1:
-                print(f"[shiny] DB locked, retrying ({i+1}/{retries})...")
-                time.sleep(delay)
-            else:
-                raise
-
-_vizro_db = get_db_path()
+from ..my_finance_shared.database import connect_with_retry, sync_geo_to_duckdb
+from .config import DB_PATH
 
 # Geo parquet sync must happen BEFORE opening the read_only connection
-# (DuckDB disallows mixed read_only/read_write connections to the same file)
-_geo_parquet = _proj_dir / "data/03_primary/dim_unit_geo.parquet"
+_sync_conn = connect_with_retry(read_only=False)
 try:
-    if _geo_parquet.exists():
-        _sync_conn = _connect_with_retry(_vizro_db)
-        try:
-            geo_df = pl.read_parquet(str(_geo_parquet))
-            if not geo_df.is_empty():
-                _sync_conn.register("_geo", geo_df.to_pandas())
-                _sync_conn.execute(
-                    "CREATE OR REPLACE TABLE finance_data.dim_unit_geo AS SELECT * FROM _geo"
-                )
-                print(f"[shiny] Synced {geo_df.height} geo rows to DuckDB from parquet")
-        finally:
-            _sync_conn.close()
-except Exception as e:
-    print(f"[shiny] Geo sync failed: {e}")
+    sync_geo_to_duckdb(_sync_conn)
+finally:
+    _sync_conn.close()
 
-_vizro_con = _connect_with_retry(_vizro_db, read_only=True)
+_vizro_con = connect_with_retry(read_only=True)
 
 # ============================================================
 # Asset-liability bubble + leverage scatter data

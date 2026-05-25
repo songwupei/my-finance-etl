@@ -71,3 +71,17 @@ def server(input, output, session):
 
 
 app = App(app_ui, server)
+
+
+def main():
+    """CLI entry point: shiny run src.my_finance_shiny.app"""
+    import os
+    import sys
+
+    port = int(os.environ.get("SHINY_PORT", "8000"))
+    host = os.environ.get("SHINY_HOST", "0.0.0.0")
+
+    print(f"Starting Shiny on http://{host}:{port}")
+    from shiny._main import run_app
+    sys.argv = ["shiny", "run", "--host", host, "--port", str(port), "src.my_finance_shiny.app"]
+    run_app()
