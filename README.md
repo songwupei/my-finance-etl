@@ -2,7 +2,7 @@
 
 基于 Kedro 数据管道框架的财务数据 ETL 与可视化平台，支持动态 Excel 文件扫描、指标标准化处理、组织树构建、资金账户解析、地理编码与可视化展示。
 
-**版本**: 1.5.3
+**版本**: 1.5.2
 
 ## 项目结构
 
@@ -254,61 +254,6 @@ kedro registry list    # 查看所有已注册管道
 - **修改可视化界面**: 编辑 `templates/index.html` 和 `flask_app.py`
 - **添加新的 Vizro 页面**: 在 `flask_app.py` 中添加 `vm.Page`
 
-### Git 分支规范
-
-本项目遵循 [Conventional Commits](https://www.conventionalcommits.org/) 提交规范。
-
-**分支策略**：
-
-| 分支类型 | 命名格式 | 说明 |
-|---|---|---|
-| 主线 | `main` | 稳定发布分支，只接受合并，禁止直接提交 |
-| 功能分支 | `feature/<name>` | 新功能开发，从 `main` 检出，完成后合并回 `main` |
-| 修复分支 | `fix/<name>` | Bug 修复，从 `main` 检出，完成后合并回 `main` |
-
-**当前活跃分支**：
-- `main` — 稳定主线（当前），已推送 `origin/main`
-- `feature/shiny` — Vizro 仪表板迁移至 Shiny for Python 探索，已推送 `origin/feature/shiny`，标签 `v1.5.2-shiny`
-
-**Commit Message 格式**：
-
-```
-<type>(<scope>): <subject>
-```
-
-| type | 说明 |
-|---|---|
-| `feat` | 新功能 |
-| `fix` | Bug 修复 |
-| `docs` | 文档变更 |
-| `refactor` | 代码重构（非功能、非修复） |
-| `perf` | 性能优化 |
-| `chore` | 构建、工具、依赖变更 |
-
-**示例**：
-```
-feat(web): 新增穿透监管 PanReg 模块
-refactor(web): flask_app.py 拆解为 src/my_finance_web/ 模块包
-docs: 新增 Git 分支规范说明
-```
-
-**工作流程**：
-
-```bash
-# 从 main 创建功能分支
-git checkout main && git pull
-git checkout -b feature/<name>
-
-# 开发完成后提交
-git add .
-git commit -m "feat(scope): 功能描述"
-
-# 合并回 main
-git checkout main
-git merge feature/<name>
-git push origin main
-```
-
 ## 故障排除
 
 ### 常见问题
@@ -326,14 +271,6 @@ tail -f logs/my_finance_etl.log
 ```
 
 ## 版本历史
-
-### v1.5.3 (2026-05-15)
-
-- **账户明细表增强** 📋: AgGrid 表格新增分页控制 (`paginationPageSize: 50`)、列筛选与缩放 (`defaultColDef: {filter, resizable}`)、导出 CSV 按钮（`va.export_data`），标题改为"账户明细表"
-  - `dashboard/account_map.py`: 导入 `vizro.actions`，表格交互与导出功能
-- **首页重写** 🏠: 标题由 "HOME" 改为"首页"，欢迎卡片重构为功能导航列表（穿透监控 / 地理分布 / 账户地图 / 余额分析 / 日报生成），突出平台核心能力
-  - `dashboard/home.py`: 标题与 Card 内容全面重写
-- **分支与标签规范化** 📌: `feature/shiny` 分支推送至 Codeberg 远程，创建 `v1.5.2-shiny` 标签区分主线与探索分支；README 新增 Git 分支规范章节
 
 ### v1.5.1 (2026-05-14)
 
