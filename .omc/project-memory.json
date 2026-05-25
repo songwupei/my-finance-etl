@@ -148,14 +148,14 @@
     },
     {
       "path": "src/my_finance_shiny/app.py",
-      "accessCount": 5,
-      "lastAccessed": 1779672806507,
+      "accessCount": 7,
+      "lastAccessed": 1779688765939,
       "type": "file"
     },
     {
       "path": "src/my_finance_shiny/data.py",
-      "accessCount": 5,
-      "lastAccessed": 1779674653904,
+      "accessCount": 6,
+      "lastAccessed": 1779688547593,
       "type": "file"
     },
     {
@@ -165,9 +165,33 @@
       "type": "file"
     },
     {
+      "path": "pyproject.toml",
+      "accessCount": 4,
+      "lastAccessed": 1779688798765,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_web/config.py",
+      "accessCount": 4,
+      "lastAccessed": 1779689219782,
+      "type": "file"
+    },
+    {
       "path": "src/my_finance_shiny/config.py",
+      "accessCount": 3,
+      "lastAccessed": 1779688533541,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_shared/__init__.py",
       "accessCount": 2,
-      "lastAccessed": 1779688147931,
+      "lastAccessed": 1779688574731,
+      "type": "file"
+    },
+    {
+      "path": "src/my_finance_shiny/database.py",
+      "accessCount": 2,
+      "lastAccessed": 1779688591346,
       "type": "file"
     },
     {
@@ -225,15 +249,27 @@
       "type": "file"
     },
     {
-      "path": "src/my_finance_web/config.py",
+      "path": "src/my_finance_shared/database.py",
       "accessCount": 1,
-      "lastAccessed": 1779688000193,
+      "lastAccessed": 1779688512266,
       "type": "file"
     },
     {
-      "path": "src/my_finance_shiny/database.py",
+      "path": "src/my_finance_web/database.py",
       "accessCount": 1,
-      "lastAccessed": 1779688148066,
+      "lastAccessed": 1779688552622,
+      "type": "file"
+    },
+    {
+      "path": "start.sh",
+      "accessCount": 1,
+      "lastAccessed": 1779688740781,
+      "type": "file"
+    },
+    {
+      "path": "stop.sh",
+      "accessCount": 1,
+      "lastAccessed": 1779688743204,
       "type": "file"
     }
   ],

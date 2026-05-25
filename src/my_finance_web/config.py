@@ -3,7 +3,7 @@ from pathlib import Path
 
 import yaml
 
-from ..my_finance_shared import DB_PATH, _proj_dir
+from ..my_finance_shared import DB_PATH, _proj_dir, get_db_path as _get_db_path
 
 # YAML mapping for /api/node_data validation
 _yaml_mapping_path = _proj_dir / "conf/base/finance_mapping_standard.yaml"
