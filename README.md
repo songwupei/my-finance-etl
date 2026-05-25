@@ -1,8 +1,8 @@
 # 集团财务数据标准化处理与可视化平台
 
-基于 Kedro 数据管道框架的财务数据 ETL 与可视化平台，支持动态 Excel 文件扫描、指标标准化处理、组织树构建、资金账户解析、地理编码与可视化展示。
+基于 Kedro 数据管道框架的财务数据 ETL 与可视化平台，支持动态 Excel 文件扫描、指标标准化处理、组织树构建、资金账户解析、地理编码与可视化展示。**Vizro + Shiny 双引擎架构** — Vizro 面向领导汇报大屏，Shiny 面向个人电脑办公大屏。
 
-**版本**: 1.5.2
+**版本**: 1.6.0
 
 ## 项目结构
 
@@ -58,14 +58,28 @@ skdata-etl/
 ├── templates/
 │   └── index.html                 # Flask 前端界面
 ├── generated_reports/             # 生成的报告文件
-├── src/my_finance_web/             # Web 模块包 (v1.5 模块化重构)
+├── src/my_finance_shared/           # 共享模块 (v1.6)
+│   ├── __init__.py
+│   ├── config.py                   # 共享配置 (_proj_dir, DB_PATH, get_db_path)
+│   └── database.py                 # DuckDB 连接 (带重试) + geo parquet 同步
+├── src/my_finance_shiny/           # Shiny 仪表板 (v1.6 新增)
+│   ├── app.py                      # Shiny 入口 (14页 + main() CLI)
+│   ├── config.py                   # → 导入共享模块
+│   ├── data.py                     # DuckDB SQL → Polars DataFrame 预加载
+│   ├── database.py                 # → 导入共享模块
+│   ├── components/                 # 可复用组件 (kpi_card, fallback)
+│   ├── figures/                    # Plotly 图表工厂
+│   └── pages/                      # 14 个页面模块 (home/smart_query/balance/...)
+├── src/my_finance_web/             # Vizro/Flask Web 模块包 (v1.5)
 │   ├── __init__.py                 # Flask 工厂函数 + CLI 入口
-│   ├── config.py                   # 集中配置 (DB/YAML/邮件/Quarto)
+│   ├── config.py                   # 集中配置 → 导入共享模块
 │   ├── database.py                 # DuckDB 连接与查询工具
 │   ├── callbacks.py                # Dash 级联筛选回调
 │   ├── routes/                     # 路由蓝图 (tree/treasury/report/geo/panreg)
 │   └── dashboard/                  # Vizro 仪表板模块 (home/map/balance/panreg/…)
 ├── flask_app.py                   # Flask 入口 (6行薄壳 → src/my_finance_web)
+├── start.sh                       # whiptail 双引擎启动器 (v1.6)
+├── stop.sh                        # 统一停止脚本 (v1.6)
 ├── pyproject.toml                 # 项目配置
 └── README.md                      # 本文档
 ```
@@ -89,15 +103,18 @@ skdata-etl/
 
 ### 可视化服务
 
-13. **组织树浏览**: Flask + jsTree 交互式组织树，点击节点查看财务指标详情
-14. **财务数据查询**: 支持资产负债表/利润表/现金流量表的月度/累计/同比数据
-15. **资金账户查询**: 按单位查看银行账户余额、类型、合作银行等
-16. **指标对比**: 标准科目 vs 原始报表指标的自动匹配验证
-17. **Vizro 仪表板**: 穿透监控大屏（资产负债气泡散点 + 杠杆率分析）、单位地理分布（中国地图）
-18. **账户地图**: 全国银行账户地理分布，四维筛选（子集团/银行/省份/城市），省份→城市级联
-19. **账户余额统计分析**: 5 个分析页面（整体/子集团/银行/地理/交叉维度），柱状图+饼图+Treemap+箱线图+散点图
-20. **日报生成**: 基于 Quarto 模板的自动报告生成
-21. **日报邮件发送**: 一键生成 PDF 并通过 SMTP 脚本发送日报邮件，支持自动生成 PDF 后发送，日期参数联动
+13. **双引擎架构** 🚀 (v1.6 新增): Vizro（领导汇报大屏）+ Shiny（个人电脑办公大屏）双引擎并存，`whiptail` 图形化启动器 `start.sh` 一键启动两个服务
+14. **AI 智能查询** 🤖 (v1.6 新增): QueryChat 自然语言数据探索 — 基于 LLM (Claude) 的自然语言转 SQL 过滤，联动 KPI 卡片、地理分布图、`great_tables` 细分维度表（含财务快报数据）、交互式明细表，支持 CSV 导出
+15. **Shiny 多页面仪表板** 📊 (v1.6 新增): 14 页 Shiny for Python 仪表板 — 首页、智能查询、地理分布、穿透监控、账户分析、余额统计分析，与 Vizro 共享 `my_finance_shared` 数据层
+16. **组织树浏览**: Flask + jsTree 交互式组织树，点击节点查看财务指标详情
+17. **财务数据查询**: 支持资产负债表/利润表/现金流量表的月度/累计/同比数据
+18. **资金账户查询**: 按单位查看银行账户余额、类型、合作银行等
+19. **指标对比**: 标准科目 vs 原始报表指标的自动匹配验证
+20. **Vizro 仪表板**: 穿透监控大屏（资产负债气泡散点 + 杠杆率分析）、单位地理分布（中国地图）
+21. **账户地图**: 全国银行账户地理分布，四维筛选（子集团/银行/省份/城市），省份→城市级联
+22. **账户余额统计分析**: 5 个分析页面（整体/子集团/银行/地理/交叉维度），柱状图+饼图+Treemap+箱线图+散点图
+23. **日报生成**: 基于 Quarto 模板的自动报告生成
+24. **日报邮件发送**: 一键生成 PDF 并通过 SMTP 脚本发送日报邮件，支持自动生成 PDF 后发送，日期参数联动
 
 ## 快速开始
 
@@ -157,13 +174,38 @@ python scripts/geocode_units.py
 
 ### 6. 启动可视化服务
 
+**方式一: whiptail 图形启动器 (推荐)**
+
 ```bash
-python flask_app.py
+bash start.sh
+# 选择 领导汇报大屏 (Vizro) 或 个人电脑办公大屏 (Shiny)
+# 两个服务同时启动，浏览器自动打开选中页面
+bash stop.sh   # 停止所有服务
+```
+
+**方式二: 手动启动**
+
+```bash
+# Vizro (Flask, port 5001)
+micromamba run -n shiny_vizro python -c "
+from src.my_finance_web import create_app
+create_app().run(debug=False, host='0.0.0.0', port=5001)
+"
+
+# Shiny (port 8000)
+micromamba run -n shiny_vizro shiny run --host 0.0.0.0 --port 8000 src.my_finance_shiny.app
+```
+
+**方式三: CLI 入口**
+
+```bash
+my-finance-web    # Vizro → http://localhost:5001
+my-finance-shiny  # Shiny → http://localhost:8000
 ```
 
 访问:
-- 组织树界面: http://localhost:5001
-- Vizro 仪表板: http://localhost:5001/vizro/
+- Vizro 领导汇报大屏: http://localhost:5001
+- Shiny 个人电脑办公大屏: http://localhost:8000
 
 ## 数据模型
 
@@ -205,7 +247,9 @@ python flask_app.py
 | ETL 框架 | Kedro ≥ 0.19.0 |
 | 数据处理 | Polars（Pandas 仅遗留 parser 兼容层） |
 | 数据仓库 | DuckDB |
-| 可视化 | Flask, jsTree, Vizro, Plotly |
+| 可视化 | Flask, jsTree, Vizro, Shiny for Python, Plotly |
+| AI 查询 | QueryChat + Anthropic Claude (自然语言 → SQL) |
+| 精美表格 | great_tables (GT) |
 | 报告生成 | Quarto |
 | 地理编码 | 高德地图 API |
 | 包管理 | setuptools + pyproject.toml |
@@ -271,6 +315,17 @@ tail -f logs/my_finance_etl.log
 ```
 
 ## 版本历史
+
+### v1.6.0 (2026-05-25)
+
+- **Shiny 双引擎架构** 🚀: 新增 `src/my_finance_shiny/` 14 页 Shiny for Python 仪表板 — Vizro（领导汇报大屏，port 5001）+ Shiny（个人电脑办公大屏，port 8000）双引擎并存，覆盖首页、地理分布、穿透监控、账户分析、余额统计分析五大模块
+- **AI 智能查询** 🤖: 新增 `smart_query` 页面 — 基于 QueryChat + Anthropic Claude 的自然语言数据探索，联动 KPI 卡片（账户总数/余额合计/银行类型分布）、Plotly 地理分布图（国内城市 + 海外国家）、`great_tables` 细分维度表（含财务快报财务公司存款/商业银行存款数据）、交互式明细表，支持 CSV 导出
+- **共享模块重构** 🏗️: 抽取 `src/my_finance_shared/` — 消除 Vizro 与 Shiny 间的 `config.py` 和 `database.py` 重复代码，统一 DuckDB 连接（带重试锁）和 geo parquet 同步逻辑
+- **whiptail 图形启动器** 🎛️: `start.sh`/`stop.sh` — whiptail 伪图形界面，一键启动双服务并自动打开浏览器，日志写入 `logs/` 目录
+- **micromamba 环境**: 新建 `shiny_vizro` 环境 (Python 3.13)，预装 shiny、vizro、dash、querychat、anthropic、great-tables 等全套依赖
+- **CLI 入口**: `pyproject.toml` 新增 `my-finance-shiny` 脚本入口，版本号升至 1.6.0
+- **财务快报数据集成**: 子集团维度表关联资产负债表（货币资金 → 财务公司存款 + 商业银行存款），双日期标注（司库数据截至日期 + 财务快报截至日期）
+- **KPI 美化**: 银行类型分布三列彩色展示（合作银行蓝/非合作银行橙/财务公司绿）
 
 ### v1.5.1 (2026-05-14)
 
