@@ -33,7 +33,7 @@ def generate_report():
 
     cmd = [
         "micromamba", "run", "-n", "quarto", "bash", "-c",
-        f"cd /home/song/NutstoreFiles/projects/PrettyDoc && quarto render reports/SiKuReport/daily_report/daily_report_account-gb.qmd -P year:{year} -P month:{month} -P day:{day}"
+        f"export PYTHONPATH=/home/song/NutstoreFiles/2-Code/1-MyPython/pybox:${{PYTHONPATH:-}} && cd /home/song/NutstoreFiles/projects/PrettyDoc && quarto render reports/SiKuReport/daily_report/daily_report_account-gb.qmd -P year:{year} -P month:{month} -P day:{day}"
     ]
 
     try:
@@ -80,7 +80,7 @@ def send_report():
 
         cmd = [
             "micromamba", "run", "-n", "quarto", "bash", "-c",
-            f"cd /home/song/NutstoreFiles/projects/PrettyDoc && quarto render reports/SiKuReport/daily_report/daily_report_account-gb.qmd -P year:{year} -P month:{month} -P day:{day}"
+            f"export PYTHONPATH=/home/song/NutstoreFiles/2-Code/1-MyPython/pybox:${{PYTHONPATH:-}} && cd /home/song/NutstoreFiles/projects/PrettyDoc && quarto render reports/SiKuReport/daily_report/daily_report_account-gb.qmd -P year:{year} -P month:{month} -P day:{day}"
         ]
         try:
             subprocess.run(cmd, capture_output=True, text=True, check=True)

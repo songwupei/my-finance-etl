@@ -1,4 +1,5 @@
 import re
+import tomllib
 from pathlib import Path
 
 import yaml
@@ -39,4 +40,20 @@ def _get_email_config():
 
 
 _QUARTO_PDF = Path("/home/song/NutstoreFiles/projects/PrettyDoc/_output/reports/SiKuReport/daily_report/daily_report_account-gb.pdf")
-_SEND_SCRIPT = Path("/home/song/NutstoreFiles/5-Quartools/app_py/sync_files/hooks/treasury_daily.sh")
+
+_TREASURY_CONFIG = Path("/home/song/NutstoreFiles/projects/filepulse/config_treasury.toml")
+
+
+def _get_send_script() -> Path:
+    """从 filepulse config_treasury.toml 读取 on_after_process 路径。"""
+    if _TREASURY_CONFIG.exists():
+        with open(_TREASURY_CONFIG, "rb") as f:
+            cfg = tomllib.load(f)
+        for entry in cfg.get("archives", []):
+            if entry.get("name") == "siku_account" and entry.get("on_after_process"):
+                return Path(entry["on_after_process"])
+    # fallback 路径
+    return Path("/home/song/NutstoreFiles/projects/filepulse/hooks/treasury_daily.sh")
+
+
+_SEND_SCRIPT = _get_send_script()
