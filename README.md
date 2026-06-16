@@ -116,7 +116,7 @@ skdata-etl/
 21. **账户地图**: 全国银行账户地理分布，四维筛选（子集团/银行/省份/城市），省份→城市级联
 22. **账户余额统计分析**: 5 个分析页面（整体/子集团/银行/地理/交叉维度），柱状图+饼图+Treemap+箱线图+散点图
 23. **日报生成**: 基于 Quarto 模板的自动报告生成
-24. **日报邮件发送**: 一键生成 PDF 并通过 SMTP 脚本发送日报邮件，支持自动生成 PDF 后发送，日期参数联动
+24. **日报邮件发送**: 一键生成 PDF 并通过 filepulse SMTP 脚本发送日报邮件，发送脚本路径从 `config_treasury.toml` 动态解析，支持自动生成 PDF 后发送，日期参数联动
 
 ## 快速开始
 
@@ -253,6 +253,7 @@ my-finance-shiny  # Shiny → http://localhost:8000
 | AI 查询 | QueryChat + Anthropic Claude (自然语言 → SQL) |
 | 精美表格 | great_tables (GT) |
 | 报告生成 | Quarto |
+| 邮件发送 | filepulse |
 | 地理编码 | 高德地图 API |
 | 包管理 | setuptools + pyproject.toml |
 
