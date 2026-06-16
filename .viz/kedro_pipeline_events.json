@@ -1,7 +1,7 @@
 [
   {
     "event": "before_pipeline_run",
-    "timestamp": "2026-04-24T09:13:29.379163+00:00"
+    "timestamp": "2026-06-03T08:42:04.923574+00:00"
   },
   {
     "event": "after_dataset_loaded",
@@ -21,7 +21,7 @@
     "event": "after_node_run",
     "node": "batch_parse_treasury_files",
     "node_id": "a6390c1b",
-    "duration": 20.943938618001994,
+    "duration": 0.2728367090003303,
     "status": "success"
   },
   {
@@ -29,35 +29,315 @@
     "dataset": "parsed_treasury_account_info",
     "node_id": "1d846f08",
     "status": "Available",
-    "size": 784729
+    "size": 713890
   },
   {
     "event": "after_dataset_saved",
     "dataset": "parsed_treasury_account_balance",
     "node_id": "486d0f1b",
     "status": "Available",
-    "size": 355087
+    "size": 415630
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "catalog",
+    "node_id": "41dabae7",
+    "status": "Available",
+    "size": 0
+  },
+  {
+    "event": "after_node_run",
+    "node": "parse_excel_files_polars",
+    "node_id": "51a9b7b3",
+    "duration": 24.667743691000396,
+    "status": "success"
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "parsed_base_info",
+    "node_id": "652a0b47",
+    "status": "Available",
+    "size": 261689
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "parsed_report_data",
+    "node_id": "117d8f68",
+    "status": "Available",
+    "size": 2458882
   },
   {
     "event": "after_dataset_loaded",
     "dataset": "parsed_treasury_account_info",
     "node_id": "1d846f08",
     "status": "Available",
-    "size": 784729
+    "size": 713890
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "parameters",
+    "node_id": "f1f1425b",
+    "status": "Available",
+    "size": 0
+  },
+  {
+    "event": "after_node_run",
+    "node": "build_dim_bank_branch",
+    "node_id": "014cf809",
+    "duration": 22.3298946470004,
+    "status": "success"
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "dim_bank_branch",
+    "node_id": "743be172",
+    "status": "Available",
+    "size": 194670
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "parsed_report_data",
+    "node_id": "117d8f68",
+    "status": "Available",
+    "size": 2458882
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "parameters",
+    "node_id": "f1f1425b",
+    "status": "Available",
+    "size": 0
+  },
+  {
+    "event": "after_node_run",
+    "node": "standardize_report_data",
+    "node_id": "85ab2a5b",
+    "duration": 75.3965631660003,
+    "status": "success"
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "processed_report_data",
+    "node_id": "a1464c9f",
+    "status": "Available",
+    "size": 2343370
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "parsed_base_info",
+    "node_id": "652a0b47",
+    "status": "Available",
+    "size": 261689
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "processed_report_data",
+    "node_id": "a1464c9f",
+    "status": "Available",
+    "size": 2343370
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "parameters",
+    "node_id": "f1f1425b",
+    "status": "Available",
+    "size": 0
+  },
+  {
+    "event": "after_node_run",
+    "node": "build_dimension_tables",
+    "node_id": "a787a40b",
+    "duration": 14.747596402999989,
+    "status": "success"
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "dim_unit_report",
+    "node_id": "8d11b1d4",
+    "status": "Available",
+    "size": 143068
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "dim_caliber",
+    "node_id": "a9343b2c",
+    "status": "Available",
+    "size": 1496
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "dim_report_category",
+    "node_id": "39c94c9e",
+    "status": "Available",
+    "size": 908
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "dim_period",
+    "node_id": "015097d0",
+    "status": "Available",
+    "size": 1692
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "dim_standard_account",
+    "node_id": "dd6582a4",
+    "status": "Available",
+    "size": 7268
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "processed_report_data",
+    "node_id": "a1464c9f",
+    "status": "Available",
+    "size": 2343370
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "dim_unit_report",
+    "node_id": "8d11b1d4",
+    "status": "Available",
+    "size": 143068
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "dim_caliber",
+    "node_id": "a9343b2c",
+    "status": "Available",
+    "size": 1496
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "dim_report_category",
+    "node_id": "39c94c9e",
+    "status": "Available",
+    "size": 908
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "dim_period",
+    "node_id": "015097d0",
+    "status": "Available",
+    "size": 1692
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "dim_standard_account",
+    "node_id": "dd6582a4",
+    "status": "Available",
+    "size": 7268
+  },
+  {
+    "event": "after_node_run",
+    "node": "build_fact_table",
+    "node_id": "91875438",
+    "duration": 19.80183641200074,
+    "status": "success"
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "fact_finance_data",
+    "node_id": "9a0a6492",
+    "status": "Available",
+    "size": 47550954
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "parsed_base_info",
+    "node_id": "652a0b47",
+    "status": "Available",
+    "size": 261689
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "dim_unit_report",
+    "node_id": "8d11b1d4",
+    "status": "Available",
+    "size": 143068
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "parameters",
+    "node_id": "f1f1425b",
+    "status": "Available",
+    "size": 0
+  },
+  {
+    "event": "after_node_run",
+    "node": "build_organization_tree",
+    "node_id": "6c2aacda",
+    "duration": 6.113884524000241,
+    "status": "success"
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "dim_organization_tree",
+    "node_id": "13618f73",
+    "status": "Available",
+    "size": 93347
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "dim_bank_branch",
+    "node_id": "743be172",
+    "status": "Available",
+    "size": 194670
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "dim_unit_report",
+    "node_id": "8d11b1d4",
+    "status": "Available",
+    "size": 143068
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "parameters",
+    "node_id": "f1f1425b",
+    "status": "Available",
+    "size": 0
+  },
+  {
+    "event": "after_node_run",
+    "node": "enrich_geo_coordinates",
+    "node_id": "b4b444e4",
+    "duration": 0.2309886679995543,
+    "status": "success"
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "dim_bank_branch_enriched",
+    "node_id": "b8ed0d64",
+    "status": "Available",
+    "size": 194670
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "dim_unit_geo",
+    "node_id": "2308249f",
+    "status": "Available",
+    "size": 46487
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "parsed_treasury_account_info",
+    "node_id": "1d846f08",
+    "status": "Available",
+    "size": 713890
   },
   {
     "event": "after_dataset_loaded",
     "dataset": "parsed_treasury_account_balance",
     "node_id": "486d0f1b",
     "status": "Available",
-    "size": 355087
+    "size": 415630
   },
   {
     "event": "after_dataset_loaded",
     "dataset": "dim_organization_tree",
     "node_id": "13618f73",
     "status": "Available",
-    "size": 116193
+    "size": 93347
   },
   {
     "event": "after_dataset_loaded",
@@ -70,7 +350,7 @@
     "event": "after_node_run",
     "node": "build_treasury_dimensions_and_fact",
     "node_id": "c5828f3d",
-    "duration": 53.40683922199969,
+    "duration": 0.32624453300013556,
     "status": "success"
   },
   {
@@ -78,42 +358,168 @@
     "dataset": "dim_treasury_account",
     "node_id": "8c238fc4",
     "status": "Available",
-    "size": 1210004
+    "size": 1010426
   },
   {
     "event": "after_dataset_saved",
     "dataset": "dim_treasury_account_type",
     "node_id": "99a09da9",
     "status": "Available",
-    "size": 4425
+    "size": 2105
   },
   {
     "event": "after_dataset_saved",
     "dataset": "fact_treasury_account_balance",
     "node_id": "cfe127df",
     "status": "Available",
-    "size": 265257
+    "size": 419208
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "dim_unit_report",
+    "node_id": "8d11b1d4",
+    "status": "Available",
+    "size": 143068
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "dim_caliber",
+    "node_id": "a9343b2c",
+    "status": "Available",
+    "size": 1496
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "dim_report_category",
+    "node_id": "39c94c9e",
+    "status": "Available",
+    "size": 908
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "dim_period",
+    "node_id": "015097d0",
+    "status": "Available",
+    "size": 1692
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "dim_standard_account",
+    "node_id": "dd6582a4",
+    "status": "Available",
+    "size": 7268
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "dim_organization_tree",
+    "node_id": "13618f73",
+    "status": "Available",
+    "size": 93347
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "fact_finance_data",
+    "node_id": "9a0a6492",
+    "status": "Available",
+    "size": 47550954
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "parameters",
+    "node_id": "f1f1425b",
+    "status": "Available",
+    "size": 0
+  },
+  {
+    "event": "after_node_run",
+    "node": "load_to_data_warehouse",
+    "node_id": "768b40f8",
+    "duration": 27.276265925999724,
+    "status": "success"
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "loaded_dim_unit_report",
+    "node_id": "15ca7f62",
+    "status": "Available",
+    "size": 0
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "loaded_dim_caliber",
+    "node_id": "670cc160",
+    "status": "Available",
+    "size": 0
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "loaded_dim_report_category",
+    "node_id": "68badc08",
+    "status": "Available",
+    "size": 0
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "loaded_dim_period",
+    "node_id": "ebb5b2ef",
+    "status": "Available",
+    "size": 0
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "loaded_dim_standard_account",
+    "node_id": "4c08b1e7",
+    "status": "Available",
+    "size": 0
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "loaded_dim_organization_tree",
+    "node_id": "69e15edc",
+    "status": "Available",
+    "size": 0
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "loaded_fact_finance_data",
+    "node_id": "7bf3e36b",
+    "status": "Available",
+    "size": 0
   },
   {
     "event": "after_dataset_loaded",
     "dataset": "dim_treasury_account",
     "node_id": "8c238fc4",
     "status": "Available",
-    "size": 1210004
+    "size": 1010426
   },
   {
     "event": "after_dataset_loaded",
     "dataset": "dim_treasury_account_type",
     "node_id": "99a09da9",
     "status": "Available",
-    "size": 4425
+    "size": 2105
   },
   {
     "event": "after_dataset_loaded",
     "dataset": "fact_treasury_account_balance",
     "node_id": "cfe127df",
     "status": "Available",
-    "size": 265257
+    "size": 419208
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "dim_bank_branch_enriched",
+    "node_id": "b8ed0d64",
+    "status": "Available",
+    "size": 194670
+  },
+  {
+    "event": "after_dataset_loaded",
+    "dataset": "dim_unit_geo",
+    "node_id": "2308249f",
+    "status": "Available",
+    "size": 46487
   },
   {
     "event": "after_dataset_loaded",
@@ -125,8 +531,8 @@
   {
     "event": "after_node_run",
     "node": "load_treasury_to_warehouse",
-    "node_id": "058b0273",
-    "duration": 2.1421900040004402,
+    "node_id": "f8759ddf",
+    "duration": 2.39021550400048,
     "status": "success"
   },
   {
@@ -151,7 +557,21 @@
     "size": 0
   },
   {
+    "event": "after_dataset_saved",
+    "dataset": "loaded_dim_bank_branch_enriched",
+    "node_id": "4e512a00",
+    "status": "Available",
+    "size": 0
+  },
+  {
+    "event": "after_dataset_saved",
+    "dataset": "loaded_dim_unit_geo",
+    "node_id": "66e44804",
+    "status": "Available",
+    "size": 0
+  },
+  {
     "event": "after_pipeline_run",
-    "timestamp": "2026-04-24T09:14:47.227179+00:00"
+    "timestamp": "2026-06-03T08:45:27.482062+00:00"
   }
 ]

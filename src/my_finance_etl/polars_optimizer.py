@@ -19,9 +19,10 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 
-# 导入项目自制的PolarsExcelDataset
+# 导入项目自制的PolarsExcelDataset + polars-etl-kit 流式读取
 from .io.polars_excel_dataset import PolarsExcelDataset
 from .file_cache import FileCache
+from polars_etl_kit.excel.parser import stream_excel  # noqa: F401 — 大文件流式读取
 
 logger = logging.getLogger(__name__)
 

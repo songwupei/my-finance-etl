@@ -1,4 +1,8 @@
-"""DuckDB数据仓库实现，支持Parquet到DuckDB的自动同步和优化查询。"""
+"""DuckDB数据仓库实现，支持Parquet到DuckDB的自动同步和优化查询。
+
+Incremental upsert via :meth:`DuckDBDataWarehouse.upsert_dataframe` using the
+same DELETE+INSERT pattern as polars-etl-kit's ``load_table_incremental``.
+"""
 import duckdb
 import polars as pl
 import logging
@@ -39,6 +43,52 @@ class DuckDBDataWarehouse:
         except Exception as e:
             self.logger.error(f"连接DuckDB失败: {e}")
             raise
+
+    def upsert_dataframe(
+        self,
+        table_name: str,
+        df: pl.DataFrame,
+        pk: str,
+    ) -> dict:
+        """Incremental upsert using polars-etl-kit's DELETE+INSERT pattern.
+
+        Thin adapter that delegates to the same DuckDB-compatible UPSERT
+        logic used by ``polars_etl_kit.WarehouseBuilder.load_table_incremental``.
+
+        Args:
+            table_name: Target table name.
+            df: Polars DataFrame with new/changed rows.
+            pk: Primary key column for matching existing rows.
+
+        Returns:
+            Dict with ``total`` row count after upsert and ``table`` name.
+        """
+        if df.is_empty():
+            return {"total": 0, "table": table_name}
+
+        tmp = f"_upsert_tmp_{table_name}"
+        self.conn.register(tmp, df.to_pandas())
+
+        # Ensure table exists
+        self.conn.execute(
+            f"CREATE TABLE IF NOT EXISTS {table_name} "
+            f"AS SELECT * FROM {tmp} WHERE 1=0"
+        )
+
+        # DELETE + INSERT (compatible with all DuckDB versions)
+        self.conn.execute(
+            f"DELETE FROM {table_name} "
+            f"WHERE {pk} IN (SELECT {pk} FROM {tmp})"
+        )
+        self.conn.execute(f"INSERT INTO {table_name} SELECT * FROM {tmp}")
+        self.conn.unregister(tmp)
+
+        row = self.conn.execute(
+            f"SELECT COUNT(*) FROM {table_name}"
+        ).fetchone()
+        total = row[0] if row else 0
+        self.logger.info("Upserted %s: %s rows total", table_name, total)
+        return {"total": total, "table": table_name}
 
     def create_schema(self):
         """创建数据仓库schema。"""

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1779670757867,
+  "lastScanned": 1780493308087,
   "projectRoot": "/home/song/NutstoreFiles/5-Quartools/app_py/skdata-etl",
   "techStack": {
     "languages": [
@@ -53,7 +53,7 @@
       "path": "__pycache__",
       "purpose": null,
       "fileCount": 3,
-      "lastAccessed": 1779670757843,
+      "lastAccessed": 1780493308051,
       "keyFiles": [
         "flask_app.cpython-313.pyc",
         "settings.cpython-313.pyc",
@@ -64,33 +64,34 @@
       "path": "conf",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1779670757853,
+      "lastAccessed": 1780493308063,
       "keyFiles": []
     },
     "data": {
       "path": "data",
       "purpose": "Data files",
       "fileCount": 1,
-      "lastAccessed": 1779670757855,
+      "lastAccessed": 1780493308065,
       "keyFiles": []
     },
     "doc": {
       "path": "doc",
       "purpose": null,
-      "fileCount": 4,
-      "lastAccessed": 1779670757857,
+      "fileCount": 7,
+      "lastAccessed": 1780493308068,
       "keyFiles": [
         "account_map_detail_table_plan.md",
         "data_standard_upgrade_plan.md",
         "finance_warehouse_schema.md",
-        "指标对比键匹配规则.md"
+        "querychat_core_example.py",
+        "querychat_express_example.py"
       ]
     },
     "generated_reports": {
       "path": "generated_reports",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1779670757857,
+      "lastAccessed": 1780493308071,
       "keyFiles": [
         "daily_report_20260429.docx",
         "daily_report_20260429.pdf"
@@ -99,15 +100,18 @@
     "logs": {
       "path": "logs",
       "purpose": null,
-      "fileCount": 0,
-      "lastAccessed": 1779670757858,
-      "keyFiles": []
+      "fileCount": 2,
+      "lastAccessed": 1780493308071,
+      "keyFiles": [
+        "shiny.log",
+        "vizro.log"
+      ]
     },
     "scripts": {
       "path": "scripts",
       "purpose": "Build/utility scripts",
       "fileCount": 4,
-      "lastAccessed": 1779670757859,
+      "lastAccessed": 1780493308075,
       "keyFiles": [
         "README.md",
         "financereport_template.xlsx",
@@ -118,22 +122,24 @@
     "src": {
       "path": "src",
       "purpose": "Source code",
-      "fileCount": 0,
-      "lastAccessed": 1779670757860,
-      "keyFiles": []
+      "fileCount": 1,
+      "lastAccessed": 1780493308076,
+      "keyFiles": [
+        "__init__.py"
+      ]
     },
     "static": {
       "path": "static",
       "purpose": "Static files",
       "fileCount": 0,
-      "lastAccessed": 1779670757860,
+      "lastAccessed": 1780493308076,
       "keyFiles": []
     },
     "templates": {
       "path": "templates",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1779670757861,
+      "lastAccessed": 1780493308077,
       "keyFiles": [
         "index.html"
       ]
@@ -144,6 +150,12 @@
       "path": "src/my_finance_shiny/pages/smart_query.py",
       "accessCount": 22,
       "lastAccessed": 1779677555355,
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 12,
+      "lastAccessed": 1780495195024,
       "type": "file"
     },
     {
@@ -174,6 +186,12 @@
       "path": "src/my_finance_web/config.py",
       "accessCount": 4,
       "lastAccessed": 1779689219782,
+      "type": "file"
+    },
+    {
+      "path": "doc/ilm/main.typ",
+      "accessCount": 4,
+      "lastAccessed": 1779693967689,
       "type": "file"
     },
     {
@@ -270,6 +288,18 @@
       "path": "stop.sh",
       "accessCount": 1,
       "lastAccessed": 1779688743204,
+      "type": "file"
+    },
+    {
+      "path": "doc/操作手册.md",
+      "accessCount": 1,
+      "lastAccessed": 1779692525170,
+      "type": "file"
+    },
+    {
+      "path": "doc/ilm/操作手册.pdf",
+      "accessCount": 1,
+      "lastAccessed": 1779694004477,
       "type": "file"
     }
   ],
