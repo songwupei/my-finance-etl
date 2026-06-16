@@ -38,5 +38,5 @@ def _get_email_config():
     return {}
 
 
-_QUARTO_PDF = Path("/home/song/NutstoreFiles/5-Quartools/PrettyDoc/_output/SiKuReport/daily_report_account-gb.pdf")
+_QUARTO_PDF = Path("/home/song/NutstoreFiles/projects/PrettyDoc/_output/reports/SiKuReport/daily_report/daily_report_account-gb.pdf")
 _SEND_SCRIPT = Path("/home/song/NutstoreFiles/5-Quartools/app_py/sync_files/hooks/treasury_daily.sh")
