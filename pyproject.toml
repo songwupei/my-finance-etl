@@ -8,14 +8,13 @@ version = "1.6.1"
 description = "财务数据ETL与可视化平台 — Vizro + Shiny 双引擎"
 authors = [{name = "Song Wupei", email = "songwupei@qq.com"}]
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 requires-python = ">=3.11"
 keywords = ["finance", "etl", "kedro", "vizro", "shiny", "duckdb", "polars"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Web Environment",
-    "Intended Audience :: Financial Services",
-    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Financial and Insurance Industry",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.11",
