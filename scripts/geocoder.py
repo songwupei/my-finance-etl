@@ -13,10 +13,7 @@ from pathlib import Path
 import duckdb
 import polars as pl
 
-_MAP_UTILS = os.path.expanduser("~/NutstoreFiles/2-Code/1-MyPython/0-MyPyPkg/map_utils")
-if _MAP_UTILS not in sys.path:
-    sys.path.insert(0, _MAP_UTILS)
-from amap_client import AMapClient
+from geocode_amap.client import AMapClient
 
 _GEO_ENTERPRISE_CACHE = Path(os.path.expanduser(
     "~/NutstoreFiles/8-MyData/GeoData/geo_enterprise.parquet"
