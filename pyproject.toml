@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "my_finance_etl"
-version = "1.6.1"
+version = "1.6.2"
 description = "财务数据ETL与可视化平台 — Vizro + Shiny 双引擎"
 authors = [{name = "Song Wupei", email = "songwupei@qq.com"}]
 readme = "README.md"
@@ -44,7 +44,7 @@ dependencies = [
     "querychat>=0.6.0",
     "anthropic>=0.100.0",
     "filepulse>=0.1.0",
-    "geocode-amap",
+    "geocode-amap>=0.1.0",
 ]
 
 [project.urls]
