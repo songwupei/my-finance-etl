@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "my_finance_etl"
-version = "1.6.2"
+version = "1.6.3"
 description = "财务数据ETL与可视化平台 — Vizro + Shiny 双引擎"
 authors = [{name = "Song Wupei", email = "songwupei@qq.com"}]
 readme = "README.md"
@@ -35,6 +35,7 @@ dependencies = [
     "dash>=2.0.0",
     "shiny>=1.0.0",
     "shinywidgets>=0.3.0",
+    "libsass>=0.23.0",
     "faicons>=0.2.0",
     "numpy>=1.24.0",
     "plotly>=5.0.0",
@@ -45,6 +46,7 @@ dependencies = [
     "anthropic>=0.100.0",
     "filepulse>=0.1.0",
     "geocode-amap>=0.1.0",
+    "mailops>=0.2.0",
 ]
 
 [project.urls]
