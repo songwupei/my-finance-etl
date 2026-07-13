@@ -13,16 +13,20 @@ cd "$SCRIPT_DIR"
 LOG_DIR="$SCRIPT_DIR/logs"
 mkdir -p "$LOG_DIR"
 
+SIONTILES_LOG="$LOG_DIR/siontiles.log"
 SHINY_LOG="$LOG_DIR/shiny.log"
 VIZRO_LOG="$LOG_DIR/vizro.log"
 
+KILL_SIONTILES="lsof -i :8765 -t 2>/dev/null | xargs kill 2>/dev/null"
 KILL_SHINY="$SCRIPT_DIR/kill_shiny.sh"
 KILL_VIZRO="$SCRIPT_DIR/kill.sh"
 
+SIONTILES_PORT=8765
 SHINY_PORT=8000
 VIZRO_PORT=5001
+SIONTILES_DIR="/home/song/NutstoreFiles/projects/SionTiles/web"
 
-TITLE="财务数据分析平台 v1.6.3"
+TITLE="财务数据分析平台 v1.6.4"
 MENU_TEXT="两个服务将同时启动。请选择要打开的页面:"
 
 # ---- 检查 whiptail（仅交互模式需要）----
@@ -70,12 +74,31 @@ fi
 
 # ---- 杀掉已有进程 ----
 echo "🔧 清理已有进程..."
+eval "$KILL_SIONTILES" 2>/dev/null || true
 bash "$KILL_SHINY" 2>/dev/null || true
 bash "$KILL_VIZRO" 2>/dev/null || true
 sleep 1
 
 echo "⏳ 启动服务（串行，避免 DuckDB 锁冲突）..."
 echo ""
+
+# ---- 先启动 SionTiles 地图服务（无 DB 依赖）----
+echo "🗺️  启动 企业地图服务 (SionTiles)  port $SIONTILES_PORT ..."
+cd "$SIONTILES_DIR"
+micromamba run python server.py \
+    > "$SIONTILES_LOG" 2>&1 &
+SIONTILES_PID=$!
+cd "$SCRIPT_DIR"
+echo "   PID: $SIONTILES_PID  → 日志: $SIONTILES_LOG"
+
+# 等 SionTiles 就绪
+for i in $(seq 1 10); do
+    if curl -s "http://localhost:$SIONTILES_PORT" >/dev/null 2>&1; then
+        echo "   ✅ SionTiles 就绪 (port $SIONTILES_PORT)"
+        break
+    fi
+    sleep 1
+done
 
 # ---- 先启动 Shiny（需要写 DuckDB，独占锁）----
 echo "🚀 启动 个人电脑办公大屏 (Shiny)  port $SHINY_PORT ..."
@@ -129,6 +152,7 @@ xdg-open "$URL" 2>/dev/null || open "$URL" 2>/dev/null || true
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  服务运行中:"
+echo "    企业地图分析  → http://localhost:$SIONTILES_PORT"
 echo "    领导汇报大屏  → http://localhost:$VIZRO_PORT"
 echo "    个人电脑办公  → http://localhost:$SHINY_PORT"
 echo "  停止服务: bash stop.sh"

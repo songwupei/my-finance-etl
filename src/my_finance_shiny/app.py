@@ -9,6 +9,7 @@ from .pages import (
     account_map,
     monitor,
     china_map,
+    enterprise_map,
     balance_overview,
     balance_subgroup,
     balance_bank,
@@ -28,6 +29,7 @@ app_ui = ui.page_navbar(
     ui.nav_panel("首页", home.home_ui()),
     ui.nav_panel("智能查询", smart_query.smart_query_ui()),
     ui.nav_panel("地理分布", china_map.china_map_ui()),
+    ui.nav_panel("企业地图", enterprise_map.enterprise_map_ui()),
     # ---- 穿透监控 ----
     ui.nav_menu(
         "穿透监控",
@@ -68,6 +70,7 @@ def server(input, output, session):
     balance_geo.balance_geo_server(input, output, session)
     balance_cross.balance_cross_server(input, output, session)
     smart_query.smart_query_server(input, output, session)
+    enterprise_map.enterprise_map_server(input, output, session)
 
 
 app = App(app_ui, server)
