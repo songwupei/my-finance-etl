@@ -1,8 +1,8 @@
 # 集团财务数据标准化处理与可视化平台
 
-基于 Kedro 数据管道框架的财务数据 ETL 与可视化平台，支持动态 Excel 文件扫描、指标标准化处理、组织树构建、资金账户解析、地理编码与可视化展示。**Vizro + Shiny 双引擎架构** — Vizro 面向领导汇报大屏，Shiny 面向个人电脑办公大屏。
+基于 Kedro 数据管道框架的财务数据 ETL 与可视化平台，支持动态 Excel 文件扫描、指标标准化处理、组织树构建、资金账户解析、地理编码与可视化展示。**Vizro + Shiny + MapLibre 三引擎架构** — Vizro 面向领导汇报大屏，Shiny 面向个人电脑办公大屏，MapLibre 面向企业地图可视化。
 
-**版本**: 1.6.4
+**版本**: 1.6.5
 
 ## 项目结构
 
@@ -318,6 +318,12 @@ tail -f logs/my_finance_etl.log
 ```
 
 ## 版本历史
+
+### v1.6.5 (2026-07-13)
+
+- **SionTiles PMTiles 地图服务** 🗺️: 新增企业地图页面 `enterprise_map` — iframe 嵌入 SionTiles (localhost:8765)，支持 PMTiles 矢量瓦片渲染
+- **企业 POI 导出脚本** 📍: 新增 `scripts/export_enterprise_poi.py` — DuckDB → GeoJSON 管道 (GCJ-02 → WGS-84 坐标转换)，写入 SionTiles POI 目录
+- **启动脚本扩展** 🔧: `start.sh` 自动启动 SionTiles 服务（先于 Shiny），串行生命周期管理；`stop.sh` 同步终止端口 8765 服务
 
 ### v1.6.3 (2026-07-13)
 
