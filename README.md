@@ -2,7 +2,7 @@
 
 基于 Kedro 数据管道框架的财务数据 ETL 与可视化平台，支持动态 Excel 文件扫描、指标标准化处理、组织树构建、资金账户解析、地理编码与可视化展示。**Vizro + Shiny 双引擎架构** — Vizro 面向领导汇报大屏，Shiny 面向个人电脑办公大屏。
 
-**版本**: 1.6.1
+**版本**: 1.6.3
 
 ## 项目结构
 
@@ -318,6 +318,19 @@ tail -f logs/my_finance_etl.log
 ```
 
 ## 版本历史
+
+### v1.6.3 (2026-07-13)
+
+- **新增依赖** 📦: `libsass>=0.23.0` (Shiny 主题编译)、`mailops>=0.2.0` (日报邮件发送)
+- **start.sh 健壮性修复** 🔧: 检测非 TTY 环境自动跳过 whiptail、使用当前激活的 micromamba 环境而非硬编码环境名、Shiny 先于 Vizro 启动避免 DuckDB 锁冲突
+- **上游依赖收紧**: `polars-etl-kit>=0.2.0`（使用 NameMatcher 模糊匹配和 stream_excel 流式读取等 v0.2.0 API）
+
+### v1.6.2 (2026-06-30)
+
+- **PyPI 发布完善** 📦: 修正 SPDX License 字符串、补充完整 PyPI 元数据（分类器/关键词/URL）、新增 `geocode-amap>=0.1.0` 依赖
+- **filepulse 集成** 🔗: 新增 filepulse 依赖，`_SEND_SCRIPT` 路径从 `config_treasury.toml` 动态解析、PDF 日报路径统一
+- **polars-etl-kit 深度集成** 🔄: 替换本地 FileCache 实现为 polars-etl-kit 封装；集成 Phase 5 特性（流式 Excel 解析、CDC 数仓、多地理编码提供商）
+- **日报路径修复** 🔧: PrettyDoc 日报生成路径校正
 
 ### v1.6.1 (2026-06-03)
 
