@@ -1,7 +1,7 @@
 Metadata-Version: 2.4
 Name: my_finance_etl
-Version: 1.6.5
-Summary: 财务数据ETL与可视化平台 — Vizro + Shiny + MapLibre 三引擎
+Version: 1.6.7
+Summary: AI驱动财务数据ETL与可视化平台 — Vizro + Shiny + MapLibre 三引擎 + LLM 智能查询
 Author-email: Song Wupei <songwupei@qq.com>
 License-Expression: MIT
 Project-URL: Homepage, https://codeberg.org/songwupei/skdata-etl
@@ -37,6 +37,7 @@ Requires-Dist: numpy>=1.24.0
 Requires-Dist: plotly>=5.0.0
 Requires-Dist: polars>=1.0.0
 Requires-Dist: polars-etl-kit>=0.2.0
+Requires-Dist: fastexcel>=0.3.0
 Requires-Dist: great-tables>=0.21.0
 Requires-Dist: querychat>=0.6.0
 Requires-Dist: anthropic>=0.100.0
@@ -44,11 +45,13 @@ Requires-Dist: filepulse>=0.1.0
 Requires-Dist: geocode-amap>=0.1.0
 Requires-Dist: mailops>=0.2.0
 
-# 集团财务数据标准化处理与可视化平台
+# 集团财务数据 AI 智能分析与可视化平台
 
-基于 Kedro 数据管道框架的财务数据 ETL 与可视化平台，支持动态 Excel 文件扫描、指标标准化处理、组织树构建、资金账户解析、地理编码与可视化展示。**Vizro + Shiny 双引擎架构** — Vizro 面向领导汇报大屏，Shiny 面向个人电脑办公大屏。
+基于 Kedro 数据管道框架的 AI 驱动财务数据 ETL 与可视化平台，集成大模型（LLM）自然语言智能查询，支持动态 Excel 文件扫描、指标标准化处理、组织树构建、资金账户解析、地理编码与可视化展示。**Vizro + Shiny + MapLibre 三引擎架构** — Vizro 面向领导汇报大屏，Shiny 面向个人电脑办公大屏，MapLibre 面向企业地图可视化。
 
-**版本**: 1.6.4
+> 🏆 本项目已报名参加集团公司 2026 年数智化场景创新应用大赛（人工智能赛道 · AI 创新应用实践）。
+
+**版本**: 1.6.6
 
 ## 项目结构
 
@@ -133,6 +136,18 @@ skdata-etl/
 ```
 
 ## 功能特性
+
+### 🤖 AI 智能查询（核心亮点）
+
+| 能力 | 说明 |
+|---|---|
+| **自然语言 → SQL** | 基于 LLM（Anthropic Claude）的自然语言转 SQL 引擎，用户用中文描述需求即可自动生成 DuckDB 查询 |
+| **KPI 联动** | 查询结果自动联动账户总数、余额合计、银行类型分布等关键财务指标卡片 |
+| **地理分布图** | 自动渲染国内城市 + 海外国家地理分布气泡图，颜色按银行类型（合作行/非合作行/财务公司）区分 |
+| **多维细分表** | `great_tables` 精美格式化表格，支持按子集团/银行/省份/城市多维度下钻，含财务快报数据（财务公司存款 + 商业银行存款） |
+| **交互式明细** | 可排序、可筛选的交互式数据表，支持 CSV 一键导出 |
+| **零代码探索** | 决策者无需 SQL 技能即可自助探索数据，秒级响应 |
+| **双模式查询** | QueryChat 通用问答 + 预置快捷查询（按子集团/按银行/按地区等常见分析场景） |
 
 ### ETL 管道
 
@@ -364,6 +379,16 @@ tail -f logs/my_finance_etl.log
 ```
 
 ## 版本历史
+
+### v1.6.6 (2026-07-14)
+
+- **README 重构** 📝: 标题升级为「AI 智能分析与可视化平台」、新增 AI 智能查询专区（7 项核心能力）、参赛定位标注（集团公司 2026 数智化场景创新应用大赛 · 人工智能赛道）
+
+### v1.6.5 (2026-07-13)
+
+- **SionTiles PMTiles 地图服务** 🗺️: 新增企业地图页面 `enterprise_map` — iframe 嵌入 SionTiles (localhost:8765)，支持 PMTiles 矢量瓦片渲染
+- **企业 POI 导出脚本** 📍: 新增 `scripts/export_enterprise_poi.py` — DuckDB → GeoJSON 管道 (GCJ-02 → WGS-84 坐标转换)，写入 SionTiles POI 目录
+- **启动脚本扩展** 🔧: `start.sh` 自动启动 SionTiles 服务（先于 Shiny），串行生命周期管理；`stop.sh` 同步终止端口 8765 服务
 
 ### v1.6.3 (2026-07-13)
 

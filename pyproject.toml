@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "my_finance_etl"
-version = "1.6.6"
+version = "1.6.7"
 description = "AI驱动财务数据ETL与可视化平台 — Vizro + Shiny + MapLibre 三引擎 + LLM 智能查询"
 authors = [{name = "Song Wupei", email = "songwupei@qq.com"}]
 readme = "README.md"
@@ -41,12 +41,14 @@ dependencies = [
     "plotly>=5.0.0",
     "polars>=1.0.0",
     "polars-etl-kit>=0.2.0",
+    "fastexcel>=0.3.0",  # calamine高性能Excel引擎
     "great-tables>=0.21.0",
     "querychat>=0.6.0",
     "anthropic>=0.100.0",
     "filepulse>=0.1.0",
     "geocode-amap>=0.1.0",
     "mailops>=0.2.0",
+    "tqdm>=4.60.0",
 ]
 
 [project.urls]
