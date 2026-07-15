@@ -416,3 +416,34 @@ try:
         )
 except Exception:
     pass
+
+# ============================================================
+# Aliases — FinForge-compatible variable names for page modules
+# ============================================================
+
+asset_liability = _vizro_df1
+china_geo = _vizro_geo_data
+bank_map_account = _bank_map_account_data
+account_detail = _account_detail_df
+account_detail_column_defs = _account_detail_column_defs
+balance_base = _balance_base_data
+balance_tiers = _tier_data
+balance_by_subgroup = _balance_by_subgroup
+balance_by_bank = _balance_by_bank
+balance_by_city = _balance_by_city
+balance_boxplot = _box_data
+bank_usage_pivot = _bank_usage_pivot
+querychat_data = _querychat_data
+finance_by_subgroup = _querychat_finance_by_subgroup
+finance_period = _querychat_finance_period_label
+# Compute balance period from querychat data (mirrors original smart_query.py logic)
+_balance_period_val = ""
+if _querychat_data.height > 0 and "balance_date" in _querychat_data.columns:
+    _max_dt = _querychat_data["balance_date"].max()
+    if _max_dt is not None:
+        _balance_period_val = str(_max_dt)[:10]
+balance_period = _balance_period_val
+_top8_banks = _top8_banks
+_top20_city = _top20_city
+_cross_data = _cross_data
+_bank_data_for_chart = _bank_data_for_chart

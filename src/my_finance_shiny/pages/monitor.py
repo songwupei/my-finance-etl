@@ -1,28 +1,29 @@
-"""穿透监控大屏 — 2 Plotly figures."""
+"""穿透监控大屏 — 资产负债气泡 + 杠杆率散点。"""
+
 from shiny import reactive, ui
 from shinywidgets import render_plotly, output_widget
 
-from ..data import _vizro_df1
+from ..data import asset_liability
 from ..figures.home import asset_liability_bubble, leverage_vs_accounts
 
 
-def monitor_ui():
+def page():
     return ui.TagList(
         ui.card(
             ui.card_header("资产负债结构气泡图"),
-            output_widget("monitor_bubble"),
+            output_widget("monitor_bubble", fill=True),
         ),
         ui.card(
             ui.card_header("杠杆率 vs 账户规模"),
-            output_widget("monitor_leverage"),
+            output_widget("monitor_leverage", fill=True),
         ),
     )
 
 
-def monitor_server(input, output, session):
+def server(input, output, session):
     @reactive.calc
     def _data():
-        return _vizro_df1.clone()
+        return asset_liability.clone()
 
     @render_plotly
     def monitor_bubble():

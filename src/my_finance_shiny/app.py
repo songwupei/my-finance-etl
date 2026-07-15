@@ -1,90 +1,92 @@
-"""Shiny dashboard app — 14-page financial data visualization platform."""
+"""FinForge-style Shiny Web 应用。
+
+启动:
+    shiny run --host 0.0.0.0 --port 8000 src.my_finance_shiny.app
+"""
+
+from __future__ import annotations
+
 from shiny import App, ui
 from shiny.ui import Theme
 
+# ── Pages ──
 from .pages import (
-    home,
-    panreg,
-    account_detail,
-    account_map,
-    monitor,
-    china_map,
-    enterprise_map,
-    balance_overview,
-    balance_subgroup,
-    balance_bank,
-    balance_geo,
-    balance_cross,
-    smart_query,
+    home, smart_query, china_map, enterprise_map,
+    monitor, account_map, account_detail, panreg,
+    balance_overview, balance_subgroup, balance_bank,
+    balance_geo, balance_cross,
 )
-from .components.fallback import fallback_card
 
 
-def _placeholder_ui(name: str):
-    return fallback_card(f"{name} — 内容待开发")
+def _app_ui() -> ui.Tag:
+    """主界面 — 双层导航。"""
+    return ui.page_navbar(
+        # ── 顶层导航 ──
+        ui.nav_panel("🏠 首页", home.page()),
+        ui.nav_panel("🤖 智能查询", smart_query.page()),
+        ui.nav_panel("🗺️ 资产地图", china_map.page()),
+        ui.nav_panel("📍 资金地图", enterprise_map.page()),
 
+        # ── 穿透监控 ──
+        ui.nav_menu(
+            "🔍 穿透监控",
+            ui.nav_panel("监控大屏", monitor.page()),
+            ui.nav_panel("账户地图", account_map.page()),
+        ),
 
-app_ui = ui.page_navbar(
-    # ---- Top level ----
-    ui.nav_panel("首页", home.home_ui()),
-    ui.nav_panel("智能查询", smart_query.smart_query_ui()),
-    ui.nav_panel("地理分布", china_map.china_map_ui()),
-    ui.nav_panel("企业地图", enterprise_map.enterprise_map_ui()),
-    # ---- 穿透监控 ----
-    ui.nav_menu(
-        "穿透监控",
-        ui.nav_panel("监控大屏", monitor.monitor_ui()),
-        ui.nav_panel("账户地图", account_map.account_map_ui()),
-    ),
-    # ---- 账户分析 ----
-    ui.nav_menu(
-        "账户分析",
-        ui.nav_panel("关系分析", _placeholder_ui("关系分析")),
-        ui.nav_panel("账户明细表", account_detail.account_detail_ui()),
-        ui.nav_panel("概览", _placeholder_ui("概览")),
-        ui.nav_panel("穿透监管", panreg.panreg_ui()),
-    ),
-    # ---- 余额统计分析 ----
-    ui.nav_menu(
-        "余额统计分析",
-        ui.nav_panel("整体情况", balance_overview.balance_overview_ui()),
-        ui.nav_panel("子集团维度", balance_subgroup.balance_subgroup_ui()),
-        ui.nav_panel("所属银行维度", balance_bank.balance_bank_ui()),
-        ui.nav_panel("地理维度", balance_geo.balance_geo_ui()),
-        ui.nav_panel("交叉维度", balance_cross.balance_cross_ui()),
-    ),
-    title="财务数据分析平台",
-    id="main_nav",
-    theme=Theme(preset="flatly"),
-)
+        # ── 账户分析 ──
+        ui.nav_menu(
+            "📊 账户分析",
+            ui.nav_panel("账户明细", account_detail.page()),
+            ui.nav_panel("监管报告", panreg.page()),
+        ),
+
+        # ── 余额统计 ──
+        ui.nav_menu(
+            "💰 余额统计",
+            ui.nav_panel("整体概况", balance_overview.page()),
+            ui.nav_panel("子集团维度", balance_subgroup.page()),
+            ui.nav_panel("银行维度", balance_bank.page()),
+            ui.nav_panel("地理维度", balance_geo.page()),
+            ui.nav_panel("交叉分析", balance_cross.page()),
+        ),
+
+        title="FinForge — AI 财务监管平台",
+        id="navbar",
+        sidebar=None,
+        theme=Theme(preset="flatly"),
+    )
 
 
 def server(input, output, session):
-    account_detail.account_detail_server(input, output, session)
-    account_map.account_map_server(input, output, session)
-    monitor.monitor_server(input, output, session)
-    china_map.china_map_server(input, output, session)
-    balance_overview.balance_overview_server(input, output, session)
-    balance_subgroup.balance_subgroup_server(input, output, session)
-    balance_bank.balance_bank_server(input, output, session)
-    balance_geo.balance_geo_server(input, output, session)
-    balance_cross.balance_cross_server(input, output, session)
-    smart_query.smart_query_server(input, output, session)
-    enterprise_map.enterprise_map_server(input, output, session)
+    """Shiny server 函数 — 注册所有页面 server。"""
+    account_detail.server(input, output, session)
+    account_map.server(input, output, session)
+    monitor.server(input, output, session)
+    china_map.server(input, output, session)
+    balance_overview.server(input, output, session)
+    balance_subgroup.server(input, output, session)
+    balance_bank.server(input, output, session)
+    balance_geo.server(input, output, session)
+    balance_cross.server(input, output, session)
+    smart_query.server(input, output, session)
 
 
-app = App(app_ui, server)
+app = App(_app_ui(), server)
 
+
+# ── CLI entry ──
 
 def main():
-    """CLI entry point: shiny run src.my_finance_shiny.app"""
-    import os
+    """启动 Shiny 服务。"""
     import sys
-
-    port = int(os.environ.get("SHINY_PORT", "8000"))
-    host = os.environ.get("SHINY_HOST", "0.0.0.0")
-
-    print(f"Starting Shiny on http://{host}:{port}")
-    from shiny._main import run_app
-    sys.argv = ["shiny", "run", "--host", host, "--port", str(port), "src.my_finance_shiny.app"]
-    run_app()
+    import subprocess
+    port = "8000"
+    if len(sys.argv) > 1 and sys.argv[1].isdigit():
+        port = sys.argv[1]
+    subprocess.run([
+        "shiny", "run",
+        "--host", "0.0.0.0",
+        "--port", port,
+        "src.my_finance_shiny.app",
+    ])
