@@ -65,7 +65,14 @@ def get_treasury_data():
             """,
             [entity_id, data_period],
         ).fetchdf()
-        return jsonify(df.to_dict(orient="records"))
+        records = df.to_dict(orient="records")
+        # Replace NaN with None (valid JSON null) to avoid JSON parse errors in browser
+        import math
+        for r in records:
+            for k, v in r.items():
+                if isinstance(v, float) and math.isnan(v):
+                    r[k] = None
+        return jsonify(records)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 

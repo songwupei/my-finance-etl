@@ -1,6 +1,10 @@
 """Data processing pipeline for standardization and matching."""
 import os
 import sys
+import shutil
+import tempfile
+from pathlib import Path
+
 import polars as pl
 import yaml
 from kedro.pipeline import Pipeline, node
@@ -22,6 +26,13 @@ def standardize_report_data(
     if parsed_report_data.is_empty():
         return pl.DataFrame()
 
+    # Progress bar: use tqdm if available, else log every N batches
+    try:
+        from tqdm import tqdm as _tqdm
+        _has_tqdm = True
+    except ImportError:
+        _has_tqdm = False
+
     # Load configuration
     indicator_mapping_path = parameters.get("indicator_mapping_path", "conf/base/indicator_mapping.yml")
 
@@ -39,50 +50,72 @@ def standardize_report_data(
     # Initialize matcher (YAML-based, no more context_rules)
     matcher = StandardAccountMatcher(standard_accounts_path, report_type_names)
 
-    # Process each row
-    records = []
-    for row in parsed_report_data.iter_rows(named=True):
-        row_dict = row  # row is already a dict with named=True
-        matched_account = matcher.match(row_dict)
+    # Process in batches to avoid OOM on 2M+ rows
+    batch_size = 50_000
+    n_total = parsed_report_data.height
+    tmp_dir = Path(tempfile.mkdtemp(prefix="standardize_batches_"))
 
-        record = {
-            "indicator_raw": row.get("indicator_raw"),
-            "indicator_clean": row.get("indicator_clean"),
-            "indicator_number": row.get("indicator_number"),
-            "indicator_level": row.get("indicator_level"),
-            "full_path": row.get("full_path"),
-            "value_column": row.get("value_column"),
-            "value": row.get("value"),
-            "sheet_name": row.get("sheet_name"),
-            "unit": row.get("unit"),
-            "code": row.get("code"),
-            "suffix": row.get("suffix"),
-            "period": row.get("period"),
-            "entity_report_id": row.get("entity_report_id"),
-            "is_standardized": False,
-            "standard_account_code": None,
-            "standard_account_name": None,
-            "report_category": row.get("report_category"),
-            "top_level_account_name": row.get("top_level_account_name"),
-        }
+    n_batches = (n_total + batch_size - 1) // batch_size
+    batch_range = range(0, n_total, batch_size)
+    if _has_tqdm:
+        batch_range = _tqdm(batch_range, desc="standardize_report_data", unit="batch",
+                            total=n_batches, dynamic_ncols=True)
 
-        if matched_account:
-            # report_type 已是中文（来自 YAML 报表分区），直接与 parser 检测的类别比较
-            category = matched_account.get("report_type", "unknown")
-            parser_category = row.get("report_category")
-            if parser_category and category != parser_category:
-                matched_account = None  # 跨类别污染，丢弃此匹配
-            else:
-                record.update({
-                    "is_standardized": True,
-                    "standard_account_code": matched_account.get("account_code"),
-                    "standard_account_name": matched_account.get("account_name"),
-                    "report_category": category,
-                })
+    try:
+        for batch_idx, batch_start in enumerate(batch_range):
+            batch = parsed_report_data.slice(batch_start, batch_size)
+            records = []
+            for row in batch.iter_rows(named=True):
+                row_dict = row  # row is already a dict with named=True
+                matched_account = matcher.match(row_dict)
 
-        records.append(record)
+                record = {
+                    "indicator_raw": row.get("indicator_raw"),
+                    "indicator_clean": row.get("indicator_clean"),
+                    "indicator_number": row.get("indicator_number"),
+                    "indicator_level": row.get("indicator_level"),
+                    "full_path": row.get("full_path"),
+                    "value_column": row.get("value_column"),
+                    "value": row.get("value"),
+                    "sheet_name": row.get("sheet_name"),
+                    "unit": row.get("unit"),
+                    "code": row.get("code"),
+                    "suffix": row.get("suffix"),
+                    "period": row.get("period"),
+                    "entity_report_id": row.get("entity_report_id"),
+                    "is_standardized": False,
+                    "standard_account_code": None,
+                    "standard_account_name": None,
+                    "report_category": row.get("report_category"),
+                    "top_level_account_name": row.get("top_level_account_name"),
+                }
 
-    return pl.DataFrame(records)
+                if matched_account:
+                    # report_type 已是中文（来自 YAML 报表分区），直接与 parser 检测的类别比较
+                    category = matched_account.get("report_type", "unknown")
+                    parser_category = row.get("report_category")
+                    if parser_category and category != parser_category:
+                        matched_account = None  # 跨类别污染，丢弃此匹配
+                    else:
+                        record.update({
+                            "is_standardized": True,
+                            "standard_account_code": matched_account.get("account_code"),
+                            "standard_account_name": matched_account.get("account_name"),
+                            "report_category": category,
+                        })
+
+                records.append(record)
+
+            batch_df = pl.DataFrame(records)
+            batch_df.write_parquet(tmp_dir / f"batch_{batch_idx:06d}.parquet")
+            del records, batch_df
+
+        # Combine all batches via lazy scan
+        result = pl.scan_parquet(tmp_dir / "batch_*.parquet").collect()
+        return result
+
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 def build_dimension_tables(
@@ -91,7 +124,7 @@ def build_dimension_tables(
     parameters: dict,
 ) -> dict:
     """Build dimension tables from parsed and processed data."""
-    from china_areacode import ChinaDivision
+    from map_utils.china_areacode import ChinaDivision
 
     # 初始化地区展开
     china_div = ChinaDivision(standard_code_length=6)

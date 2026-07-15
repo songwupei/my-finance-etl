@@ -69,11 +69,13 @@ class StandardAccountMatcher:
             Dict with account_code, account_name, report_type, standard_path,
             data_type, fuzzy_score (if fuzzy match), or None.
         """
-        # Map caller field names → polars-etl-kit field names
+        # Map caller field names → polars-etl-kit NameMatcher expected field names
+        # NameMatcher looks for self._raw_field / self._clean_field / self._category_field
+        # which are configured as Chinese YAML field names (原始项目, 清理后名称, 报表分区)
         internal = {
-            "raw_text": _normalize_raw(row.get("indicator_raw", "")),
-            "clean_name": row.get("indicator_clean", ""),
-            "category": row.get("report_category", ""),
+            self._FIELD_MAP["raw_text"]: _normalize_raw(row.get("indicator_raw", "")),
+            self._FIELD_MAP["clean_name"]: row.get("indicator_clean", ""),
+            self._FIELD_MAP["category"]: row.get("report_category", ""),
         }
 
         result = self._matcher.match(internal)

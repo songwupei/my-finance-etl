@@ -80,17 +80,43 @@ class PolarsExcelDataset(AbstractDataset[Union[pl.DataFrame, Dict[str, pl.DataFr
         Raises:
             DatasetError: 当加载失败时。
         """
-        try:
-            result = pl.read_excel(self._filepath, **self._load_args)
+        # 引擎降级列表：优先calamine(fastexcel)，降级到openpyxl
+        engines_to_try = []
+        specified_engine = self._load_args.get("engine")
+        if specified_engine:
+            engines_to_try.append(specified_engine)
+            # 如果指定了calamine，添加openpyxl作为降级
+            if specified_engine == "calamine":
+                engines_to_try.append("openpyxl")
+        else:
+            engines_to_try = ["calamine", "openpyxl"]
 
-            # 帮助类型检查器理解返回类型
-            # polars.read_excel在sheet_id=0或sheet_name为列表/None时返回Dict[str, DataFrame]
-            # 否则返回DataFrame
-            return result
-        except Exception as exc:
-            raise DatasetError(
-                f"从 {self._filepath} 加载Excel文件失败。"
-            ) from exc
+        # 合并报错信息
+        last_exception = None
+        tried_engines = []
+
+        for engine in engines_to_try:
+            try:
+                load_args = {**self._load_args, "engine": engine}
+                # openpyxl 引擎需要 raise_if_empty=False 来处理空工作表
+                if engine == "openpyxl" and "raise_if_empty" not in load_args:
+                    load_args["raise_if_empty"] = False
+                result = pl.read_excel(self._filepath, **load_args)
+                return result
+            except Exception as exc:
+                engine_name = engine
+                last_exception = exc
+                tried_engines.append(engine_name)
+                continue
+
+        # 所有引擎都失败，构造详细错误信息
+        error_detail = (
+            f"从 {self._filepath} 加载Excel文件失败。"
+            f" 尝试的引擎: {tried_engines}"
+        )
+        if last_exception:
+            error_detail += f" 最后错误: [{type(last_exception).__name__}] {last_exception}"
+        raise DatasetError(error_detail) from last_exception
 
     def _save(self, data: Union[pl.DataFrame, Dict[str, pl.DataFrame]]) -> None:
         """将数据保存到Excel文件。

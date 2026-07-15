@@ -148,6 +148,12 @@ def get_node_data():
                 r["是否匹配"] = (yaml_match["code"] == actual_code)
             else:
                 r["是否匹配"] = True
+        # Replace NaN with None (valid JSON null)
+        import math
+        for r in records:
+            for k, v in r.items():
+                if isinstance(v, float) and math.isnan(v):
+                    r[k] = None
         return jsonify(records)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500

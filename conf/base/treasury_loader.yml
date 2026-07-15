@@ -4,6 +4,9 @@
 # 月份文件夹匹配模式
 month_folder_pattern: "{year}年{month}月司库账户数据"
 
+# 不分月份的统一目录名（所有文件放一个目录）
+combined_folder: "司库账户数据"
+
 # ==================== 业务类型定义 ====================
 business_types:
   account:

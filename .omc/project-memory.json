@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1780493308087,
-  "projectRoot": "/home/song/NutstoreFiles/5-Quartools/app_py/skdata-etl",
+  "lastScanned": 1784032701821,
+  "projectRoot": "/home/song/NutstoreFiles/projects/my-finance-etl",
   "techStack": {
     "languages": [
       {
@@ -45,7 +45,10 @@
       "src",
       "static"
     ],
-    "gitBranches": null
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
   },
   "customNotes": [],
   "directoryMap": {
@@ -53,7 +56,7 @@
       "path": "__pycache__",
       "purpose": null,
       "fileCount": 3,
-      "lastAccessed": 1780493308051,
+      "lastAccessed": 1784032701767,
       "keyFiles": [
         "flask_app.cpython-313.pyc",
         "settings.cpython-313.pyc",
@@ -64,21 +67,31 @@
       "path": "conf",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1780493308063,
+      "lastAccessed": 1784032701788,
       "keyFiles": []
     },
     "data": {
       "path": "data",
       "purpose": "Data files",
       "fileCount": 1,
-      "lastAccessed": 1780493308065,
+      "lastAccessed": 1784032701789,
       "keyFiles": []
+    },
+    "dist": {
+      "path": "dist",
+      "purpose": "Distribution/build output",
+      "fileCount": 2,
+      "lastAccessed": 1784032701793,
+      "keyFiles": [
+        "my_finance_etl-1.6.5-py3-none-any.whl",
+        "my_finance_etl-1.6.5.tar.gz"
+      ]
     },
     "doc": {
       "path": "doc",
       "purpose": null,
       "fileCount": 7,
-      "lastAccessed": 1780493308068,
+      "lastAccessed": 1784032701794,
       "keyFiles": [
         "account_map_detail_table_plan.md",
         "data_standard_upgrade_plan.md",
@@ -90,30 +103,34 @@
     "generated_reports": {
       "path": "generated_reports",
       "purpose": null,
-      "fileCount": 2,
-      "lastAccessed": 1780493308071,
+      "fileCount": 4,
+      "lastAccessed": 1784032701794,
       "keyFiles": [
         "daily_report_20260429.docx",
-        "daily_report_20260429.pdf"
+        "daily_report_20260429.pdf",
+        "daily_report_20260630.docx",
+        "daily_report_20260630.pdf"
       ]
     },
     "logs": {
       "path": "logs",
       "purpose": null,
-      "fileCount": 2,
-      "lastAccessed": 1780493308071,
+      "fileCount": 3,
+      "lastAccessed": 1784032701795,
       "keyFiles": [
         "shiny.log",
+        "siontiles.log",
         "vizro.log"
       ]
     },
     "scripts": {
       "path": "scripts",
       "purpose": "Build/utility scripts",
-      "fileCount": 4,
-      "lastAccessed": 1780493308075,
+      "fileCount": 5,
+      "lastAccessed": 1784032701802,
       "keyFiles": [
         "README.md",
+        "export_enterprise_poi.py",
         "financereport_template.xlsx",
         "geocoder.py",
         "run_mapping_standards.py"
@@ -123,7 +140,7 @@
       "path": "src",
       "purpose": "Source code",
       "fileCount": 1,
-      "lastAccessed": 1780493308076,
+      "lastAccessed": 1784032701804,
       "keyFiles": [
         "__init__.py"
       ]
@@ -132,14 +149,14 @@
       "path": "static",
       "purpose": "Static files",
       "fileCount": 0,
-      "lastAccessed": 1780493308076,
+      "lastAccessed": 1784032701805,
       "keyFiles": []
     },
     "templates": {
       "path": "templates",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1780493308077,
+      "lastAccessed": 1784032701805,
       "keyFiles": [
         "index.html"
       ]

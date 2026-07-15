@@ -44,6 +44,7 @@ Requires-Dist: anthropic>=0.100.0
 Requires-Dist: filepulse>=0.1.0
 Requires-Dist: geocode-amap>=0.1.0
 Requires-Dist: mailops>=0.2.0
+Requires-Dist: tqdm>=4.60.0
 
 # 集团财务数据 AI 智能分析与可视化平台
 
@@ -51,7 +52,7 @@ Requires-Dist: mailops>=0.2.0
 
 > 🏆 本项目已报名参加集团公司 2026 年数智化场景创新应用大赛（人工智能赛道 · AI 创新应用实践）。
 
-**版本**: 1.6.6
+**版本**: 1.6.7
 
 ## 项目结构
 
@@ -379,6 +380,12 @@ tail -f logs/my_finance_etl.log
 ```
 
 ## 版本历史
+
+### v1.6.7 (2026-07-14)
+
+- **日报生成修复** 🔧: Quarto 环境安装 `papermill` 包 — 修复 `-P` 参数注入失败导致日报渲染报错 (`--execute-params` 依赖 papermill)
+- **日报发送修复** 📧: `mailops` 统一在 `quarto` 环境安装并复制 `accounts.yml` 配置 — 修复邮件发送命令找不到和配置文件路径解析错误
+- **排错笔记** 📝: 新增 `doc/troubleshooting-notes.md` — 收录 OOM、DuckDB NaN、Kedro 执行顺序、日报生成/发送等 7 条经验
 
 ### v1.6.6 (2026-07-14)
 

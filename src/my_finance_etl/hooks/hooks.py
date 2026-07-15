@@ -114,6 +114,7 @@ class DynamicExcelLoaderHooks:
                 "sheet_name": None,
                 "engine": "openpyxl",
                 "header": 1 if is_treasury else None,
+                "dtype": str if is_treasury else None,
             },
             "metadata": {
                 "unit": file_info.get("unit"),
@@ -189,10 +190,16 @@ class DynamicExcelLoaderHooks:
     # ==================== 司库数据扫描 ====================
 
     def _scan_treasury_files(self, base_path: Path, month_pattern: str, config: dict) -> List[Dict]:
-        """扫描司库 Excel 文件（支持多业务类型）"""
+        """扫描司库 Excel 文件（支持多业务类型）。
+
+        支持两种目录结构：
+        1. 按月份的目录（如 2026年4月司库账户数据/），由 month_pattern 匹配
+        2. 不分月份的统一目录（如 司库账户数据/），由 combined_folder 配置指定
+        """
         files = []
         business_types = config.get("business_types", {})
 
+        # --- 1. 扫描按月目录 ---
         for month_folder in base_path.glob("*"):
             if not month_folder.is_dir():
                 continue
@@ -200,29 +207,53 @@ class DynamicExcelLoaderHooks:
                 continue
 
             period_end_date = self._parse_period_end_date(month_folder.name)
+            files += self._scan_treasury_folder(
+                month_folder, month_folder.name, business_types, period_end_date
+            )
 
-            for business_type, bt_config in business_types.items():
-                bt_patterns = bt_config.get("files", [])
-                for excel_file in month_folder.glob("*.xlsx"):
-                    if excel_file.name.startswith(('.~', '~$')):
-                        continue
-                    file_info = self._parse_treasury_filename(excel_file.name, bt_patterns)
-                    if file_info:
-                        file_info["path"] = str(excel_file)
-                        file_info["month_folder"] = month_folder.name
-                        # 优先用文件名中的日期，否则用月份文件夹推算的月末
-                        file_date = file_info.get("date", "")
-                        if file_date and len(file_date) == 8:
-                            file_info["period"] = f"{file_date[:4]}-{file_date[4:6]}-{file_date[6:8]}"
-                        else:
-                            file_info["period"] = period_end_date
-                        file_info["business_type"] = business_type
-                        file_info["code"] = None
-                        file_info["suffix"] = None
-                        file_info["entity_report_id"] = None  # processing 阶段匹配
-                        files.append(file_info)
+        # --- 2. 扫描不分月份的统一目录 ---
+        combined_folder_name = config.get("combined_folder", "")
+        if combined_folder_name:
+            combined_folder = base_path / combined_folder_name
+            if combined_folder.is_dir():
+                self.logger.info(f"Scanning combined treasury folder: {combined_folder}")
+                # 统一目录无法从目录名提取月份，period 全靠文件名中的日期
+                files += self._scan_treasury_folder(
+                    combined_folder, combined_folder_name, business_types, period_end_date=None
+                )
 
         self.logger.info(f"Scanned {len(files)} treasury files")
+        return files
+
+    def _scan_treasury_folder(
+        self,
+        folder: Path,
+        folder_name: str,
+        business_types: dict,
+        period_end_date: str | None,
+    ) -> List[Dict]:
+        """扫描单个司库文件夹内的 Excel 文件。"""
+        files = []
+        for business_type, bt_config in business_types.items():
+            bt_patterns = bt_config.get("files", [])
+            for excel_file in folder.glob("*.xlsx"):
+                if excel_file.name.startswith(('.~', '~$')):
+                    continue
+                file_info = self._parse_treasury_filename(excel_file.name, bt_patterns)
+                if file_info:
+                    file_info["path"] = str(excel_file)
+                    file_info["month_folder"] = folder_name
+                    # 优先用文件名中的日期，否则用文件夹推算的月末
+                    file_date = file_info.get("date", "")
+                    if file_date and len(file_date) == 8:
+                        file_info["period"] = f"{file_date[:4]}-{file_date[4:6]}-{file_date[6:8]}"
+                    else:
+                        file_info["period"] = period_end_date
+                    file_info["business_type"] = business_type
+                    file_info["code"] = None
+                    file_info["suffix"] = None
+                    file_info["entity_report_id"] = None  # processing 阶段匹配
+                    files.append(file_info)
         return files
 
     def _parse_treasury_filename(self, filename: str, patterns: List[Dict]) -> Dict:
@@ -241,6 +272,16 @@ class DynamicExcelLoaderHooks:
     # ==================== hooks.yml 执行 ====================
 
     @hook_impl
+    def before_pipeline_run(
+        self,
+        run_params: Dict[str, Any],
+        pipeline,
+        catalog: DataCatalog,
+    ) -> None:
+        """Pipeline 运行前执行 hooks.yml 中配置的全局命令。"""
+        self._run_hooks_global("before_pipeline_run")
+
+    @hook_impl
     def after_node_run(
         self,
         node,
@@ -251,6 +292,52 @@ class DynamicExcelLoaderHooks:
     ) -> None:
         """节点完成后执行 hooks.yml 中配置的命令。"""
         self._run_hooks_for_node("after_nodes", node.name)
+
+    def _run_hooks_global(self, hook_type: str):
+        """从 hooks.yml 加载并执行全局（非节点级）hook 命令。"""
+        hooks_config_path = Path(settings.CONF_SOURCE) / "base" / "hooks.yml"
+        if not hooks_config_path.exists():
+            return
+
+        try:
+            with open(hooks_config_path, "r") as f:
+                config = yaml.safe_load(f)
+        except Exception:
+            return
+
+        if config is None:
+            return
+        hooks = ((config.get("hooks") or {}).get(hook_type) or [])
+        if not hooks:
+            return
+
+        import subprocess
+
+        for cmd_spec in hooks:
+            if isinstance(cmd_spec, str):
+                cmd = cmd_spec
+                cwd = "."
+            elif isinstance(cmd_spec, dict):
+                cmd = cmd_spec.get("cmd", "")
+                cwd = cmd_spec.get("cwd", ".")
+            else:
+                continue
+
+            if not cmd:
+                continue
+
+            self.logger.info(f"Running hook [{hook_type}]: {cmd}")
+            try:
+                subprocess.run(
+                    cmd,
+                    shell=True,
+                    cwd=cwd,
+                    capture_output=True,
+                    text=True,
+                    timeout=3600,
+                )
+            except Exception as e:
+                self.logger.warning(f"Hook command failed: {e}")
 
     def _run_hooks_for_node(self, hook_type: str, node_name: str):
         """从 conf/base/hooks.yml 加载并执行特定节点的 hook 命令。"""

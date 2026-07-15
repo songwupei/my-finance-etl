@@ -2,6 +2,10 @@
 # Commands / Python functions to execute at pipeline lifecycle points
 
 hooks:
+  # Commands to run before pipeline nodes start executing
+  before_pipeline_run:
+    - "bash stop.sh"
+
   # Commands to run after the last pipeline node executes
   # after_pipeline:
     # - {"cmd": "python scripts/geocoder.py", "cwd": "./"}

@@ -224,6 +224,31 @@ def _check_address_cache(addr: str, addr_cache: dict, ttl_months: int) -> dict |
     return cached
 
 
+def _is_geocodable_address(addr: str) -> bool:
+    """Check if an address is valid for geocoding via AMap (高德).
+
+    Filters out:
+    - Empty / whitespace-only
+    - Placeholder values like "无"
+    - Very short strings (< 4 chars) that can't be real addresses
+    - Overseas addresses containing Latin characters (AMap only covers China)
+    """
+    if not addr or not addr.strip():
+        return False
+    addr = addr.strip()
+    # Placeholder / meaningless values
+    if addr in ("无", "暂无", "未知", "不详", "-", ""):
+        return False
+    if len(addr) < 4:
+        return False
+    # Overseas detection: if the address contains Latin letters (a-z, A-Z),
+    # it's likely outside China and AMap cannot geocode it
+    import re
+    if re.search(r'[a-zA-Z]', addr):
+        return False
+    return True
+
+
 # ==================== bank branches ====================
 
 def _geocode_bank_branches(
@@ -455,6 +480,20 @@ def _geocode_enterprises(
                 "formatted_address": cached_geo["formatted_address"],
             })
             _remove_failed(addr, failed_cache)
+            continue
+
+        # Skip invalid/un-geocodable addresses (placeholder "无", overseas, etc.)
+        if not _is_geocodable_address(addr):
+            # Try fallback (province + city + area) as last resort
+            parts = [
+                row.get("province") or "",
+                row.get("city") or "",
+                row.get("area") or "",
+            ]
+            fb = "".join(parts).strip()
+            if not _is_geocodable_address(fb):
+                continue
+            api_records.append({**base, "address": fb, "fallback": ""})
             continue
 
         # Need API — build geocode record with fallback

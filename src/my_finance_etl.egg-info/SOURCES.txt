@@ -56,6 +56,7 @@ src/my_finance_shiny/pages/balance_geo.py
 src/my_finance_shiny/pages/balance_overview.py
 src/my_finance_shiny/pages/balance_subgroup.py
 src/my_finance_shiny/pages/china_map.py
+src/my_finance_shiny/pages/enterprise_map.py
 src/my_finance_shiny/pages/home.py
 src/my_finance_shiny/pages/monitor.py
 src/my_finance_shiny/pages/panreg.py
