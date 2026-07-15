@@ -54,6 +54,7 @@ def _app_ui() -> ui.Tag:
         title="FinForge — AI 财务监管平台",
         id="navbar",
         sidebar=None,
+        header=ui.input_dark_mode(mode="light"),
         theme=Theme(preset="flatly"),
     )
 

@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: my_finance_etl
-Version: 1.6.7
+Version: 1.6.8
 Summary: AI驱动财务数据ETL与可视化平台 — Vizro + Shiny + MapLibre 三引擎 + LLM 智能查询
 Author-email: Song Wupei <songwupei@qq.com>
 License-Expression: MIT
@@ -52,7 +52,7 @@ Requires-Dist: tqdm>=4.60.0
 
 > 🏆 本项目已报名参加集团公司 2026 年数智化场景创新应用大赛（人工智能赛道 · AI 创新应用实践）。
 
-**版本**: 1.6.7
+**版本**: 1.6.8
 
 ## 项目结构
 
@@ -380,6 +380,15 @@ tail -f logs/my_finance_etl.log
 ```
 
 ## 版本历史
+
+### v1.6.8 (2026-07-15)
+
+- **Shiny FinForge 布局升级** 🎨: 导航栏对齐 FinForge 风格 — emoji 图标、双层导航、面板重命名，移除占位页面
+- **全屏地图** 🗺️: 资产地图、资金地图全屏铺满 (`100vh - 58px`)，Plotly autosize 自适应
+- **暗黑模式支持** 🌙: 支持 `ui.input_dark_mode()` Bootstrap 原生明暗切换
+- **余额统计优化** 📊: 整体情况 KPI 卡片增加日期标注，图表全宽填充 (`fill=True`)
+- **穿透监管重构** 🔍: PanReg 页面按日期扫描报告文件，支持文件多选浏览
+- **代码简化**: 移除重复代码，统一 `page()`/`server()` 签名，净减 ~200 行
 
 ### v1.6.7 (2026-07-14)
 
