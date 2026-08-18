@@ -56,6 +56,19 @@ COLUMN_MAP_REGISTRY: Dict[str, dict] = {
     "account_balance": ACCOUNT_BALANCE_COLUMNS,
 }
 
+# 余额类列统一为 String，避免历史缓存(Float64)与当前 dtype=str 解析(String)不一致
+BALANCE_TEXT_COLUMNS = ("balance", "converted_amount")
+
+
+def normalize_treasury_schema(df: pl.DataFrame, file_type: str) -> pl.DataFrame:
+    """统一同一业务类型的列类型（余额类列统一为 String）。"""
+    if file_type != "account_balance":
+        return df
+    for col in BALANCE_TEXT_COLUMNS:
+        if col in df.columns:
+            df = df.with_columns(pl.col(col).cast(pl.String))
+    return df
+
 
 def transform_treasury_data(df: pl.DataFrame, file_type: str) -> pl.DataFrame:
     """对已加载的 DataFrame 做列名标准化和基本清洗。
@@ -77,4 +90,6 @@ def transform_treasury_data(df: pl.DataFrame, file_type: str) -> pl.DataFrame:
 
     # 删除全空行和重复标题行
     df = df.filter(~pl.all_horizontal(pl.all().is_null()))
-    return df
+
+    # 统一列类型，保证不同来源（新解析/旧缓存）能纵向合并
+    return normalize_treasury_schema(df, file_type)

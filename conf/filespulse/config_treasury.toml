@@ -1,0 +1,31 @@
+# 司库数据报送 - 归档监控配置
+# 监控坚果云收件箱中的压缩包，解压后移动到项目数据目录
+
+[archive_monitor]
+interval = 10.0
+extract_temp = "/tmp/sync_extract"
+base_dir = "/home/song/NutstoreFiles/Nutstore"
+hook_retries = 3
+hook_retry_delay = 1
+
+# --- 账户数据 ---
+[[archives]]
+name = "siku_account"
+source_pattern = "坚果云收件箱/司库数据报送通道-*/司库业务数据-账户-*.zip"
+target_dirs = [
+    "/home/song/NutstoreFiles/projects/my-finance-etl/data/01_raw/2026年司库账户数据",
+    "/home/song/NutstoreFiles/8-MyData/vizdata"
+]
+# 仅对 vizdata 目录扁平化（丢弃子文件夹，直接放文件）
+flatten_targets = ["/home/song/NutstoreFiles/8-MyData/vizdata"]
+rename_to = ""
+archive_dir = "/home/song/NutstoreFiles/projects/filepulse/backup/zips"
+on_after_process = "/home/song/NutstoreFiles/projects/my-finance-etl/scripts/hooks/treasury_daily.sh"
+
+# --- 财务快报数据 ---
+[[archives]]
+name = "siku_finance"
+source_pattern = "坚果云收件箱/司库数据报送通道-*/财务报表数据-月度快报-*.zip"
+target_dir = "/home/song/NutstoreFiles/5-Quartools/app_py/sync_files/backup/zips"
+rename_to = ""
+archive_dir = "/home/song/NutstoreFiles/projects/filepulse/backup/zips"

@@ -6,7 +6,7 @@ from kedro.pipeline import Pipeline, node
 from kedro.framework.project import settings
 from kedro.config import OmegaConfigLoader
 
-from ..treasury_parser import transform_treasury_data
+from ..treasury_parser import normalize_treasury_schema, transform_treasury_data
 from ..file_cache import FileCache
 
 
@@ -66,6 +66,7 @@ def batch_parse_treasury_files(catalog, parameters: dict = None):
                     cache_path = file_cache.treasury_path(cache_key)
                     if cache_path.exists():
                         df = pl.read_parquet(cache_path)
+                        df = normalize_treasury_schema(df, file_type)
                         df = df.with_columns([
                             pl.lit(name).alias("source_file"),
                             pl.lit(period).alias("period"),

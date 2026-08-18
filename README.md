@@ -4,7 +4,7 @@
 
 > 🏆 本项目已报名参加集团公司 2026 年数智化场景创新应用大赛（人工智能赛道 · AI 创新应用实践）。
 
-**版本**: 1.6.8
+**版本**: 1.6.9
 
 ## 项目结构
 
@@ -21,8 +21,10 @@ skdata-etl/
 │   │   ├── standard_accounts.json # 标准科目库 (v2.0, 2018年版企业财务报表格式)
 │   │   ├── standard_accountsv1.0.json
 │   │   └── finance_mapping_standard.yaml # 财务指标映射标准配置
-│   └── local/
-│       └── credentials.yml        # 数据库凭证
+│   │── local/
+│   │   └── credentials.yml        # 数据库凭证
+│   └── filepulse/
+│       └── config_treasury.toml   # filepulse配置文件(v1.6.9新增)
 ├── src/my_finance_etl/            # 源码
 │   ├── hooks/
 │   │   └── hooks.py               # Kedro 钩子 (动态 Excel 加载)
@@ -131,6 +133,7 @@ skdata-etl/
 22. **账户余额统计分析**: 5 个分析页面（整体/子集团/银行/地理/交叉维度），柱状图+饼图+Treemap+箱线图+散点图
 23. **日报生成**: 基于 Quarto 模板的自动报告生成
 24. **日报邮件发送**: 一键生成 PDF 并通过 filepulse SMTP 脚本发送日报邮件，发送脚本路径从 `config_treasury.toml` 动态解析，支持自动生成 PDF 后发送，日期参数联动
+25. **通过坚果云收件箱自动归档**：通过坚果云和filepulse软件实现增量excel数据文件自动归档，并有条件触发自动化ETL通道。
 
 ## 快速开始
 
@@ -332,6 +335,9 @@ tail -f logs/my_finance_etl.log
 ```
 
 ## 版本历史
+
+### v1.6.9 (2026-08-18)
+- **通过坚果云收件箱自动归档**：通过坚果云和filepulse软件实现增量excel数据文件自动归档，并有条件触发自动化ETL通道。
 
 ### v1.6.8 (2026-07-15)
 

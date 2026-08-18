@@ -18,7 +18,7 @@ from pathlib import Path
 import polars as pl
 from kedro.pipeline import Pipeline, node
 
-_MAP_UTILS = os.path.expanduser("~/NutstoreFiles/2-Code/1-MyPython/0-MyPyPkg/map_utils")
+_MAP_UTILS = os.path.expanduser("~/NutstoreFiles/2-Code/1-MyPython/pybox/map_utils")
 if _MAP_UTILS not in sys.path:
     sys.path.insert(0, _MAP_UTILS)
 from amap_client import AMapClient

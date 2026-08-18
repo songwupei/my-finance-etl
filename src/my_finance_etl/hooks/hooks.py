@@ -19,6 +19,9 @@ from kedro.framework.project import settings
 class DynamicExcelLoaderHooks:
     """扫描月度文件夹，正则提取元数据，动态注册Excel数据集"""
 
+    # 需要财务（快报）数据扫描的 pipeline；treasury_data 等只注册司库数据集
+    FINANCE_PIPELINES = {"__default__", "ingest", "process", "warehouse", "finance_report"}
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
@@ -42,18 +45,6 @@ class DynamicExcelLoaderHooks:
 
         base_path = Path(params["data_source"]["base_path"])
         data_source = params["data_source"]
-
-        # --- 财务数据扫描 ---
-        if self._is_enabled(data_source, "enable_finance"):
-            finance_config_path = Path(settings.CONF_SOURCE) / "base" / "finance_loader.yml"
-            with open(finance_config_path, 'r') as f:
-                finance_config = yaml.safe_load(f)
-            month_pattern = data_source["month_folder_pattern"]
-            excel_files = self._scan_excel_files(base_path, month_pattern, finance_config)
-            self._register_datasets(catalog, excel_files, prefix="raw_")
-            self.logger.info(f"Finance scan: {len(excel_files)} files registered")
-        else:
-            self.logger.info("Finance scan disabled (enable_finance=false)")
 
         # --- 司库数据扫描 ---
         if self._is_enabled(data_source, "enable_treasury"):
@@ -278,7 +269,28 @@ class DynamicExcelLoaderHooks:
         pipeline,
         catalog: DataCatalog,
     ) -> None:
-        """Pipeline 运行前执行 hooks.yml 中配置的全局命令。"""
+        """注册财务数据集（仅财务相关 pipeline），然后执行 hooks.yml 全局命令。"""
+        pipeline_name = run_params.get("pipeline_name", "")
+        active_pipelines = {p.strip() for p in pipeline_name.split(",")} if pipeline_name else set()
+        if active_pipelines & self.FINANCE_PIPELINES:
+            config_loader = OmegaConfigLoader(conf_source=settings.CONF_SOURCE)
+            params = config_loader["parameters"]
+            data_source = params["data_source"]
+            if self._is_enabled(data_source, "enable_finance"):
+                finance_config_path = Path(settings.CONF_SOURCE) / "base" / "finance_loader.yml"
+                with open(finance_config_path, 'r') as f:
+                    finance_config = yaml.safe_load(f)
+                excel_files = self._scan_excel_files(
+                    Path(data_source["base_path"]),
+                    data_source["month_folder_pattern"],
+                    finance_config,
+                )
+                self._register_datasets(catalog, excel_files, prefix="raw_")
+                self.logger.info(f"Finance scan: {len(excel_files)} files registered")
+            else:
+                self.logger.info("Finance scan disabled (enable_finance=false)")
+        else:
+            self.logger.info("Finance scan skipped (pipeline=%s)", pipeline_name)
         self._run_hooks_global("before_pipeline_run")
 
     @hook_impl

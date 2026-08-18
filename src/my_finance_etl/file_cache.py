@@ -6,6 +6,9 @@ while delegating all core logic to polars_etl_kit.excel.cache.FileCache.
 
 from polars_etl_kit.excel.cache import FileCache as _FileCache
 
+# 司库缓存 schema 版本；解析/加载方式变化时 +1，自动作废旧缓存
+TREASURY_CACHE_VERSION = 2
+
 
 class FileCache(_FileCache):
     """MD5-based file cache, extended with project-specific path helpers.
@@ -25,4 +28,4 @@ class FileCache(_FileCache):
         return self.get_path(cache_key, "report_data")
 
     def treasury_path(self, cache_key: str):
-        return self.get_path(cache_key, "treasury")
+        return self._cache_dir / f"{cache_key}_treasury_v{TREASURY_CACHE_VERSION}.parquet"
