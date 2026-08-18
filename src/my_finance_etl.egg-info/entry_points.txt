@@ -1,4 +1,0 @@
-[console_scripts]
-my-finance-etl = src.my_finance_etl.__main__:main
-my-finance-shiny = src.my_finance_shiny.app:main
-my-finance-web = src.my_finance_web:main

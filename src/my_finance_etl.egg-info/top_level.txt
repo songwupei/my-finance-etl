@@ -1,5 +1,0 @@
-__init__
-my_finance_etl
-my_finance_shared
-my_finance_shiny
-my_finance_web
