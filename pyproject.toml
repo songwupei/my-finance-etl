@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "my_finance_etl"
-version = "1.6.9"
+version = "1.6.10"
 description = "AI驱动财务数据ETL与可视化平台 — Vizro + Shiny + MapLibre 三引擎 + LLM 智能查询"
 authors = [{name = "Song Wupei", email = "songwupei@qq.com"}]
 readme = "README.md"

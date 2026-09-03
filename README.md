@@ -62,7 +62,8 @@ skdata-etl/
 │   ├── 02_intermediate/           # 中间数据
 │   └── warehouse/                 # DuckDB 数据仓库
 ├── templates/
-│   └── index.html                 # Flask 前端界面
+│   ├── index.html                 # Flask 前端界面（财务组织树）
+│   └── penetration.html           # 穿透监管规则手册查询页
 ├── generated_reports/             # 生成的报告文件
 ├── src/my_finance_shared/           # 共享模块 (v1.6)
 │   ├── __init__.py
@@ -81,7 +82,7 @@ skdata-etl/
 │   ├── config.py                   # 集中配置 → 导入共享模块
 │   ├── database.py                 # DuckDB 连接与查询工具
 │   ├── callbacks.py                # Dash 级联筛选回调
-│   ├── routes/                     # 路由蓝图 (tree/treasury/report/geo/panreg)
+│   ├── routes/                     # 路由蓝图 (tree/treasury/report/geo/panreg/penetration)
 │   └── dashboard/                  # Vizro 仪表板模块 (home/map/balance/panreg/…)
 ├── flask_app.py                   # Flask 入口 (6行薄壳 → src/my_finance_web)
 ├── start.sh                       # whiptail 双引擎启动器 (v1.6)
@@ -134,6 +135,15 @@ skdata-etl/
 23. **日报生成**: 基于 Quarto 模板的自动报告生成
 24. **日报邮件发送**: 一键生成 PDF 并通过 filepulse SMTP 脚本发送日报邮件，发送脚本路径从 `config_treasury.toml` 动态解析，支持自动生成 PDF 后发送，日期参数联动
 25. **通过坚果云收件箱自动归档**：通过坚果云和filepulse软件实现增量excel数据文件自动归档，并有条件触发自动化ETL通道。
+26. **穿透监管规则手册查询** 🔍（新增）: 独立页面
+    http://localhost:5001/penetration（财务首页右上角同步提供入口）——支持按模型 /
+    部门 / 关键词检索穿透监管规则（预警事项、规则解析、预警标准、阈值、关联数据表等）。
+    数据源为 modelmanual 全量物化的中台库 `data/warehouse/penetration.duckdb`
+    （schema `penetration_data`：44 张表 / 19109 行，含 `v_risk_rule` /
+    `v_model_rules` / `v_dept_rules` 语义视图与 `_ingest_log` 入库记录），
+    随“穿透监管*手册”zip 交付自动全量刷新；配套只读 API：
+    `/api/penetration/meta`、`/models`、`/departments`、`/rules`、`/rules/<id>`、
+    `/ingest_log`。
 
 ## 快速开始
 
@@ -225,6 +235,7 @@ my-finance-shiny  # Shiny → http://localhost:8000
 访问:
 - Vizro 领导汇报大屏: http://localhost:5001
 - Shiny 个人电脑办公大屏: http://localhost:8000
+- 穿透监管规则手册查询: http://localhost:5001/penetration
 
 ## 数据模型
 
