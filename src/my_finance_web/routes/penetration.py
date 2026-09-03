@@ -7,8 +7,25 @@ from ..database import PENETRATION_DB, penetration_conn
 penetration_bp = Blueprint("penetration", __name__)
 
 
+import math
+
+
+def _sanitize(value):
+    """清洗 pandas/DuckDB 值：NaN/Inf → None，保证输出严格 JSON。"""
+    if value is None:
+        return None
+    if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+        return None
+    if isinstance(value, dict):
+        return {k: _sanitize(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_sanitize(v) for v in value]
+    return value
+
+
 def _rows(conn, sql, params=None):
-    return conn.execute(sql, params or []).fetchdf().to_dict("records")
+    df = conn.execute(sql, params or []).fetchdf()
+    return [_sanitize(d) for d in df.to_dict("records")]
 
 
 @penetration_bp.route("/penetration")
