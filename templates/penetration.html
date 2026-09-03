@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>穿透监管规则手册</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "PingFang SC","Microsoft YaHei",sans-serif; background:#f5f7fa; color:#222; }
+  .topbar { display:flex; align-items:center; gap:14px; padding:10px 18px; background:#fff; border-bottom:1px solid #e4e9f0; }
+  .topbar h1 { font-size:16px; margin:0; }
+  .topbar a { color:#1f6feb; text-decoration:none; font-size:13px; }
+  .wrap { padding:16px 18px; }
+  .filters { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:12px; }
+  .filters input, .filters select { padding:6px 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; }
+  .filters button { padding:6px 14px; border:0; border-radius:6px; background:#1f6feb; color:#fff; cursor:pointer; font-size:13px; }
+  .status { font-size:12px; color:#64748b; }
+  table { width:100%; border-collapse:collapse; background:#fff; font-size:12.5px; }
+  th, td { border:1px solid #e5eaf1; padding:6px 8px; text-align:left; }
+  th { background:#f0f4f9; white-space:nowrap; }
+  tr.row { cursor:pointer; }
+  tr.row:hover td { background:#f7fbff; }
+  .panel { background:#fff; border:1px solid #e5eaf1; border-radius:8px; padding:12px; margin-top:12px; white-space:pre-wrap; font-size:12px; max-height:420px; overflow:auto; }
+  .loading { color:#64748b; padding:20px; text-align:center; }
+  .err { color:#c0392b; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="/">← 财务数据平台</a>
+  <h1>🔍 穿透监管规则手册查询</h1>
+  <span class="status" id="status"></span>
+</div>
+<div class="wrap">
+  <div class="filters">
+    <select id="fModel"><option value="">全部模型</option></select>
+    <select id="fDept"><option value="">全部部门</option></select>
+    <input id="fQ" placeholder="关键词（规则/解析/要点/代码）" style="width:280px;">
+    <button onclick="loadRules()">查询</button>
+    <button onclick="clearFilters()">重置</button>
+  </div>
+  <div id="tableWrap" class="loading">加载中…</div>
+  <div id="detail" class="panel" style="display:none;"></div>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+async function jget(url) {
+  const r = await fetch(url);
+  const d = await r.json();
+  if (!d.success) throw new Error(d.error || "请求失败");
+  return d;
+}
+async function init() {
+  try {
+    const meta = await jget('/api/penetration/meta');
+    if (!meta.last_ingest) $('status').textContent = '（尚无入库记录）';
+    else $('status').textContent = '入库: ' + meta.last_ingest.run_id + ' · ' + meta.last_ingest.tables_count + ' 表 / ' + meta.last_ingest.rows_total + ' 行';
+    const models = await jget('/api/penetration/models');
+    models.items.forEach(m => { const o = document.createElement('option'); o.value = m.model_name; o.textContent = (m.model_type || '') + ' / ' + m.model_name; $('fModel').appendChild(o); });
+    const depts = await jget('/api/penetration/departments');
+    depts.items.forEach(m => { const o = document.createElement('option'); o.value = m.lead_dept; o.textContent = m.lead_dept; $('fDept').appendChild(o); });
+    loadRules();
+  } catch (e) { $('tableWrap').innerHTML = '<div class="err">' + e.message + '</div>'; }
+}
+function esc(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+async function loadRules() {
+  const p = new URLSearchParams();
+  if ($('fModel').value) p.set('model', $('fModel').value);
+  if ($('fDept').value) p.set('dept', $('fDept').value);
+  if ($('fQ').value.trim()) p.set('q', $('fQ').value.trim());
+  $('tableWrap').innerHTML = '<div class="loading">查询中…</div>';
+  try {
+    const d = await jget('/api/penetration/rules?' + p.toString());
+    if (!d.items.length) { $('tableWrap').innerHTML = '<div class="loading">无匹配结果</div>'; return; }
+    const head = '<tr><th>ID</th><th>模型</th><th>风险类型</th><th>风险事项</th><th>预警规则说明</th><th>规则解析</th><th>预警标准</th><th>状态</th><th>主责部门</th><th>要点代码</th></tr>';
+    const rows = d.items.map(r =>
+      '<tr class="row" onclick="showDetail(' + r.risk_config_id + ')">' +
+      '<td>' + r.risk_config_id + '</td>' +
+      '<td>' + esc(r.model_name) + '</td>' +
+      '<td>' + esc(r.risk_type) + '</td>' +
+      '<td>' + esc(r.risk_item) + '</td>' +
+      '<td>' + esc((r.risk_rule_desc || '').slice(0, 80)) + '</td>' +
+      '<td>' + esc((r.rule_parse || '').slice(0, 60)) + '</td>' +
+      '<td>' + esc((r.warning_standard || '').slice(0, 60)) + '</td>' +
+      '<td>' + esc(r.rule_current_status) + '</td>' +
+      '<td>' + esc(r.lead_dept) + '</td>' +
+      '<td>' + esc(r.gzwgkyq) + '</td></tr>'
+    ).join('');
+    $('tableWrap').innerHTML = '<table><thead>' + head + '</thead><tbody>' + rows + '</tbody></table>';
+  } catch (e) { $('tableWrap').innerHTML = '<div class="err">' + e.message + '</div>'; }
+}
+async function showDetail(id) {
+  const panel = $('detail');
+  panel.style.display = 'block';
+  panel.textContent = '加载详情…';
+  try {
+    const d = await jget('/api/penetration/rules/' + id);
+    panel.textContent = JSON.stringify(d, null, 2);
+  } catch (e) { panel.textContent = '错误: ' + e.message; }
+}
+function clearFilters() { $('fModel').value=''; $('fDept').value=''; $('fQ').value=''; loadRules(); }
+init();
+</script>
+</body>
+</html>
