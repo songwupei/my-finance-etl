@@ -4,7 +4,7 @@
 
 > 🏆 本项目已报名参加集团公司 2026 年数智化场景创新应用大赛（人工智能赛道 · AI 创新应用实践）。
 
-**版本**: 1.6.9
+**版本**: 1.6.10
 
 ## 项目结构
 
@@ -85,6 +85,10 @@ skdata-etl/
 │   ├── routes/                     # 路由蓝图 (tree/treasury/report/geo/panreg/penetration)
 │   └── dashboard/                  # Vizro 仪表板模块 (home/map/balance/panreg/…)
 ├── flask_app.py                   # Flask 入口 (6行薄壳 → src/my_finance_web)
+├── deploy/                        # 部署配置层（内外网差异固化，见 deploy/README.md）
+│   ├── defaults.env               # 与环境无关的默认值（端口/开关/文案）
+│   ├── lib.sh                     # 配置加载器 + 共用函数
+│   └── profiles/                  # 各机器的差异主题 (arch / openeuler)
 ├── start.sh                       # whiptail 双引擎启动器 (v1.6)
 ├── stop.sh                        # 统一停止脚本 (v1.6)
 ├── pyproject.toml                 # 项目配置
@@ -210,6 +214,14 @@ bash start.sh
 # 选择 领导汇报大屏 (Vizro) 或 个人电脑办公大屏 (Shiny)
 # 两个服务同时启动，浏览器自动打开选中页面
 bash stop.sh   # 停止所有服务
+```
+
+机器相关的配置（项目路径 / 端口 / micromamba 位置 / 是否开浏览器）集中在 `deploy/`，
+按操作系统自动选择主题（Arch 外网 / openEuler 内网），换机器不需要改代码：
+
+```bash
+bash start.sh --profile arch     # 手动指定主题
+PROFILE=openeuler bash start.sh  # 也可用环境变量
 ```
 
 **方式二: 手动启动**
@@ -346,6 +358,10 @@ tail -f logs/my_finance_etl.log
 ```
 
 ## 版本历史
+
+### 未发布
+- **部署配置层** 🧩: 新增 `deploy/` — `start.sh` / `stop.sh` / `kill.sh` / `kill_shiny.sh` 的路径、端口、micromamba 位置、是否开浏览器等配置项全部外置；按 `/etc/os-release` 自动选择 `arch`（外网）/ `openeuler`（内网）主题，`git diff` 即可看清两个环境的差异。
+- **配置单一真相** 🎯: 端口不再散落在四个脚本里，消除脚本间端口不一致导致残留进程占住 DuckDB 锁的隐患；`start.sh` 标题版本号改为从 `pyproject.toml` 读取，不再漂移。
 
 ### v1.6.9 (2026-08-18)
 - **通过坚果云收件箱自动归档**：通过坚果云和filepulse软件实现增量excel数据文件自动归档，并有条件触发自动化ETL通道。

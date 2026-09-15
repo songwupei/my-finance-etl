@@ -2,22 +2,23 @@
 # ============================================================
 # stop.sh — 停止所有财务数据分析平台服务
 # ============================================================
+# 端口等配置与 start.sh 同源（deploy/），避免两边不一致。
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=deploy/lib.sh
+source "$SCRIPT_DIR/deploy/lib.sh"
+deploy_load "$SCRIPT_DIR"
+
 echo "🛑 停止服务..."
 
-SIONTILES_PORT=8765
-VIZRO_PORT=5001
-SHINY_PORT=8000
+echo "   配置主题: $PROFILE_NAME（$PROFILE）"
 
-for entry in "SionTiles:$SIONTILES_PORT" "Vizro:$VIZRO_PORT" "Shiny:$SHINY_PORT"; do
-    name="${entry%%:*}"
-    port="${entry##*:}"
-    pids=$(lsof -i :"$port" -t 2>/dev/null)
-    if [ -n "$pids" ]; then
-        echo "$pids" | xargs -r kill 2>/dev/null
-        echo "   ✅ $name (port $port) 已停止 (PID: $(echo $pids | tr '\n' ' '))"
-    else
+while IFS=: read -r name port; do
+    if ! deploy_kill_port "$port" "$name"; then
         echo "   ⚠️  $name (port $port) 未运行"
     fi
-done
+done < <(deploy_services)
 
 echo "完成。"
