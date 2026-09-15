@@ -11,6 +11,11 @@ __pycache__/
 .omc/
 .idea/
 .vscode/
+.codegraph/
+.claude/settings.local.json
+
+# 部署本机覆盖（机器差异 + 敏感值，见 deploy/README.md）
+deploy/local.env
 
 # Generated outputs
 generated_reports/
