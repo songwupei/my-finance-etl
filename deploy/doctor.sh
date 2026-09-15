@@ -271,6 +271,29 @@ done
     warn "未找到 filepulse 配置（该机可能不跑 filepulse）"
 
 # ═══════════════════════════════════════════════════════════
+# 7b. 应存在的目录（缺失可由 --fix 自动创建）
+# ═══════════════════════════════════════════════════════════
+head2 "应存在的目录"
+
+AUTOCREATE="$SCRIPT_DIR/autocreate-dirs.txt"
+if [ -r "$AUTOCREATE" ]; then
+    while IFS= read -r d; do
+        case "$d" in ''|'#'*) continue ;; esac
+        if [ -d "$d" ]; then
+            ok "$d"
+        elif $FIX; then
+            if mkdir -p "$d" 2>/dev/null; then
+                ok "已创建 $d"
+            else
+                bad "创建失败: $d"
+            fi
+        else
+            warn "缺失（--fix 可自动创建）: $d"
+        fi
+    done < "$AUTOCREATE"
+fi
+
+# ═══════════════════════════════════════════════════════════
 # 8. LaTeX（日报 PDF）
 # ═══════════════════════════════════════════════════════════
 head2 "LaTeX（日报 PDF 渲染）"

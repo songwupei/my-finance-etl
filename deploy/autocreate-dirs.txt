@@ -1,0 +1,17 @@
+# ============================================================
+# 缺失时可自动创建的目录
+# ============================================================
+# 由 deploy/doctor.sh --fix 执行 mkdir -p。只放「创建出来就有意义、
+# 且创建失败也无害」的目录，例如同步目标、归档目录、收件箱根目录。
+#
+# 不要放需要人工确认的路径（比如整块数据的落地点）。
+#
+# 说明：两台机器上 /home/song/NutstoreFiles 都是指向坚果云数据区的
+# 兼容入口（内网实际是 /home/songwp/NutstoreFiles 的软链），
+# 因此这里的路径在两台机器上一致。
+
+# 坚果云收件箱根目录（filepulse 监控的入口）
+/home/song/NutstoreFiles/Nutstore
+
+# 财务快报数据的同步目标目录（siku_finance 流程）
+/home/song/NutstoreFiles/5-Quartools/app_py/sync_files/backup/zips
