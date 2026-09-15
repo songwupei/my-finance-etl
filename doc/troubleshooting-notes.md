@@ -168,3 +168,56 @@ micromamba run -n quarto mailops send \
 - 日报生成 API：`/api/generate_report`
 - 日报发送 API：`/api/send_report`
 - 自动发送脚本：`filepulse/hooks/treasury_daily.sh`
+
+---
+
+## 8. 内网重建 quarto 环境
+
+内网服务器上原本没有 `quarto` 环境（`micromamba env list` 只有 `base`、`cli`、`myetl`），
+而 `report.py`、`treasury_daily.sh` 都调用 `micromamba run -n quarto`，日报链路必挂。
+2026-09-15 按下面步骤重建，与环境名、Python 版本与外网保持一致（均为 3.14）：
+
+```bash
+# 1. 建环境（quarto 本体 + jupyter 引擎 + qmd 里用到的库）
+micromamba create -n quarto -c conda-forge -y \
+    quarto python=3.14 pip jupyter polars pyyaml tabulate
+
+# 2. 两个 pip 包：papermill 处理 -P 参数，mailops 发邮件
+micromamba run -n quarto pip install papermill mailops
+
+# 3. mailops 配置必须放到环境的 lib/pythonX.Y/config/ 下
+#    （mailops 用 Path(__file__).parent.parent.parent 推算项目根，
+#     装在 site-packages 下就会指向环境目录而不是项目目录）
+micromamba run -n quarto python -c "import site;print(site.getsitepackages()[0])"
+# → /home/songwp/micromamba/envs/quarto/lib/python3.14/site-packages
+mkdir -p /home/songwp/micromamba/envs/quarto/lib/python3.14/config
+cp /home/songwp/projects/mailops/config/accounts.yml \
+   /home/songwp/micromamba/envs/quarto/lib/python3.14/config/accounts.yml
+```
+
+验证（应全部 OK）：
+
+```bash
+PYTHONPATH=/home/song/NutstoreFiles/2-Code/1-MyPython/pybox \
+micromamba run -n quarto python -c "
+for m in ['polars','yaml','tabulate','IPython','papermill','mailops','siku_utils.helpers']:
+    __import__(m); print('OK', m)
+"
+```
+
+### 已知缺口：LaTeX
+
+`gbt9704-pdf` 走 LaTeX 出 PDF，但内网未装任何 TeX 引擎
+（`xelatex` / `pdflatex` / `tlmgr` 均缺失，`quarto check` 报 `TinyTeX: (not installed)`）。
+`gbt9704.cls` 是中文字体公文类，装 TinyTeX 后还需补 `ctex` 等宏包，
+或改用 conda-forge 的 `texlive-core`。**渲染 PDF 前必须先解决此项。**
+
+### 已知缺口：generated_reports/data 软链
+
+该软链曾指向外网的绝对路径
+`/home/song/NutstoreFiles/projects/my-finance-etl/data/01_raw/2026年司库账户数据`，
+内网断链。已改为机器无关的相对链接：
+
+```bash
+ln -sfn "../data/01_raw/2026年司库账户数据" generated_reports/data
+```
