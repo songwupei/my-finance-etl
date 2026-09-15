@@ -1,0 +1,10 @@
+# env: quarto
+# 日报生成与发送 —— 运行在 quarto 环境（与 myetl 分开）
+# quarto 渲染 PDF 需要 LaTeX 引擎，见 deploy/texlive-packages.txt
+bin:quarto
+papermill
+mailops
+polars
+tabulate
+IPython
+nbclient

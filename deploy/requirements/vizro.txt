@@ -1,0 +1,11 @@
+# 领导汇报大屏（Vizro）
+vizro
+dash
+flask
+plotly
+polars
+duckdb
+faicons
+great_tables
+numpy
+

@@ -1,0 +1,11 @@
+# 个人电脑办公大屏（Shiny）
+shiny
+shinywidgets
+polars
+duckdb
+plotly
+querychat
+faicons
+great_tables
+anthropic
+

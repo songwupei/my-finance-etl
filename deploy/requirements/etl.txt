@@ -1,0 +1,9 @@
+# Kedro ETL 管道
+kedro
+kedro_datasets
+polars
+polars_etl_kit
+duckdb
+fastexcel
+pandas
+

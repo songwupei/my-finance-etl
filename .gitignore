@@ -31,3 +31,7 @@ build/
 
 # Misc
 standards/
+
+# 指向坚果云共享区的软链（机器相关，由 scripts/link_shared.sh 重建）
+Standards
+map_utils

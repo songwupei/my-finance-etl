@@ -1,0 +1,4 @@
+# 企业地图服务（SionTiles）依赖 —— 运行在 CONDA_ENV（myetl）
+# 格式：一行一个 Python 模块名；bin: 前缀表示外部命令
+flask
+

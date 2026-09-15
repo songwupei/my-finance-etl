@@ -1,0 +1,29 @@
+# ============================================================
+# LaTeX / TinyTeX 自动化配置
+# ============================================================
+# 用途：日报 PDF（gbt9704-pdf 格式）走 LaTeX 渲染；
+#       gbt9704.cls 是中文公文体，依赖 ctex / xecjk / 中文字体。
+#
+# ── TinyTeX 由人工安装（脚本不自动装）─────────────────────────
+# 原因：内网直连 github.com/rstudio/tinytex-releases 会被拦截，
+#      且官方安装脚本（install-bin-unix.sh）把下载地址硬编码，
+#      不提供镜像变量；quarto install tinytex 走的是同一个地址，
+#      同样会失败。所以这一步交给人工在有网环境完成：
+#
+#   install.packages('tinytex')
+#   tinytex::install_tinytex()
+#
+# deploy/doctor.sh 检测不到 xelatex 时会打印上面这段提示词。
+#
+# ── 补齐宏包（TinyTeX 装好后执行，幂等）────────────────────────
+#   tlmgr install $(grep -v '^#' deploy/texlive-packages.txt | grep -v '^$')
+#
+# 下面每行是一个 tlmgr 包名（也接受 collection-* 集合名）。
+# 其余缺失的宏包由 TinyTeX 在渲染时自动补装（默认开启），
+# 所以这份清单是「已知需要的」，不是全集。
+# 清单来源：grep 自 generated_reports/gbt9704.cls 的 \RequirePackage
+ctex
+xecjk
+fandol
+bxcoloremoji
+fcolumn
