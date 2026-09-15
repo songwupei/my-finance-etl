@@ -209,8 +209,25 @@ for m in ['polars','yaml','tabulate','IPython','papermill','mailops','siku_utils
 
 `gbt9704-pdf` 走 LaTeX 出 PDF，但内网未装任何 TeX 引擎
 （`xelatex` / `pdflatex` / `tlmgr` 均缺失，`quarto check` 报 `TinyTeX: (not installed)`）。
-`gbt9704.cls` 是中文字体公文类，装 TinyTeX 后还需补 `ctex` 等宏包，
-或改用 conda-forge 的 `texlive-core`。**渲染 PDF 前必须先解决此项。**
+`gbt9704.cls` 是中文字体公文类，装 TinyTeX 后还需补 `ctex` 等宏包
+（清单见 `deploy/texlive-packages.txt`）。**渲染 PDF 前必须先解决此项。**
+
+安装要点（内网可行，但默认方式会失败）：
+
+```r
+options(tinytex.source.install = TRUE)
+tinytex::install_tinytex(repository = 'https://mirrors.tuna.tsinghua.edu.cn/CTAN/')
+```
+
+`tinytex::install_tinytex()` 默认调用 `install_prebuilt()`，从
+`github.com/rstudio/tinytex-releases` 下载预编译包——内网被拦截。
+本机是 aarch64 Linux 且 `version = 'daily'`，`binary_supported()` 返回真，
+所以不走 `options(tinytex.source.install = TRUE)` 就一定会去撞墙。
+加上该选项后走 `install_tinytex_source()`，直接用 TeX Live 官方安装器
+从 CTAN 镜像安装，实测清华镜像与 `tinytex.yihui.org` 均可达（HTTP 200）。
+
+另外两点：不要用 `sudo`（装到 `/root/.TinyTeX` 服务用户读不到）；
+若装到非 `~/.TinyTeX` 的位置，在 `deploy/local.env` 里设 `TINYTEX_DIR`。
 
 ### 已知缺口：generated_reports/data 软链
 

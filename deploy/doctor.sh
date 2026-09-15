@@ -319,13 +319,16 @@ tinytex_hint() {
     cat <<'EOF'
       ⚠️  未检测到 TinyTeX / xelatex → 日报可以出 docx，但无法渲染 PDF
 
-          请通过安装 R 语言然后
+          请通过安装 R 语言然后（注意第二行，不加会走 GitHub 而失败）
               install.packages('tinytex')
-              tinytex::install_tinytex()
+              options(tinytex.source.install = TRUE)
+              tinytex::install_tinytex(repository = 'https://mirrors.tuna.tsinghua.edu.cn/CTAN/')
 
-          说明：内网直连 github.com/rstudio/tinytex-releases 会被拦截，
-          且官方安装脚本将下载地址硬编码、不支持配置镜像，
-          因此这一步由人工在有网环境（或代理下）完成。
+          说明：install_tinytex() 默认走 install_prebuilt()，从
+          github.com/rstudio/tinytex-releases 拉预编译包，内网会被拦截；
+          加上 options(tinytex.source.install = TRUE) 后改走
+          install_tinytex_source()，直接从 CTAN 镜像装。
+          不要用 sudo（否则装到 /root/.TinyTeX，服务用户读不到）。
           装好后若不在默认位置，请在 deploy/local.env 指定实际目录：
               TINYTEX_DIR=/实际/路径/.TinyTeX
           装完若缺中文公文类宏包，可按 deploy/texlive-packages.txt 补：

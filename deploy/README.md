@@ -77,7 +77,19 @@ DuckDB 锁的问题。
 
 ### TinyTeX 由人工安装
 
-`doctor.sh` 检测不到 `xelatex` 时打印提示词（安装 R → `install.packages('tinytex')`
-→ `tinytex::install_tinytex()`），**不在脚本里自动装**。原因见
-`deploy/texlive-packages.txt`：内网直连 `github.com/rstudio/tinytex-releases`
-会被拦截，而官方安装脚本把下载地址硬编码、不支持配置镜像。
+`doctor.sh` 检测不到 `xelatex` 时打印提示词，**不在脚本里自动装**。
+
+坑在于 `tinytex::install_tinytex()` 有两条路：默认走 `install_prebuilt()`，
+从 `github.com/rstudio/tinytex-releases` 拉预编译包（内网被拦）；备选是
+`install_tinytex_source()`，直接用 TeX Live 官方安装器从 CTAN 装。
+aarch64 Linux 上 `binary_supported()` 判为真，所以默认必然走前者。
+
+内网可行的写法是强制源码安装 + 国内镜像：
+
+```r
+options(tinytex.source.install = TRUE)
+tinytex::install_tinytex(repository = 'https://mirrors.tuna.tsinghua.edu.cn/CTAN/')
+```
+
+不要用 `sudo`：否则装到 `/root/.TinyTeX`，服务用户读不到。默认落在
+`~/.TinyTeX`，等于 `TINYTEX_DIR` 的默认值，无需额外配置。

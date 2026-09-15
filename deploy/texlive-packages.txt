@@ -5,15 +5,28 @@
 #       gbt9704.cls 是中文公文体，依赖 ctex / xecjk / 中文字体。
 #
 # ── TinyTeX 由人工安装（脚本不自动装）─────────────────────────
-# 原因：内网直连 github.com/rstudio/tinytex-releases 会被拦截，
-#      且官方安装脚本（install-bin-unix.sh）把下载地址硬编码，
-#      不提供镜像变量；quarto install tinytex 走的是同一个地址，
-#      同样会失败。所以这一步交给人工在有网环境完成：
+# 关键：install_tinytex() 有两条路，默认那条在内网走不通。
 #
-#   install.packages('tinytex')
-#   tinytex::install_tinytex()
+#   默认 → install_prebuilt()：从 github.com/rstudio/tinytex-releases
+#          下载预编译包。内网被拦截（实测 20 秒无响应）。本机是
+#          aarch64 Linux 且 version='daily'，binary_supported() 判为真，
+#          所以默认一定走这条。
+#   备选 → install_tinytex_source()：直接用 TeX Live 官方安装器从
+#          CTAN 仓库装，且 repository 参数支持镜像。
 #
-# deploy/doctor.sh 检测不到 xelatex 时会打印上面这段提示词。
+# 所以内网可行的做法是「强制源码安装 + 国内镜像」：
+#
+#   options(tinytex.source.install = TRUE)
+#   tinytex::install_tinytex(repository = 'https://mirrors.tuna.tsinghua.edu.cn/CTAN/')
+#
+# 注意：
+#   1) 以日常用户身份运行，不要 sudo——否则装到 /root/.TinyTeX，
+#      服务用户读不到。默认落在 ~/.TinyTeX，正好等于 TINYTEX_DIR 默认值。
+#   2) repository 给 CTAN 镜像根即可，源码会补成
+#      <镜像>/systems/texlive/tlnet（normalize_repo()）。
+#   3) 装完若不在 ~/.TinyTeX，在 deploy/local.env 里设 TINYTEX_DIR。
+#
+# deploy/doctor.sh 检测不到 xelatex 时会打印对应提示词。
 #
 # ── 补齐宏包（TinyTeX 装好后执行，幂等）────────────────────────
 #   tlmgr install $(grep -v '^#' deploy/texlive-packages.txt | grep -v '^$')
