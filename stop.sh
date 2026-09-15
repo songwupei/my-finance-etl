@@ -4,8 +4,20 @@
 # ============================================================
 echo "🛑 停止服务..."
 
-lsof -i :8765 -t 2>/dev/null | xargs kill 2>/dev/null && echo "   ✅ SionTiles (port 8765) 已停止" || echo "   ⚠️  SionTiles (port 8765) 未运行"
-lsof -i :5001 -t 2>/dev/null | xargs kill 2>/dev/null && echo "   ✅ Vizro  (port 5001) 已停止" || echo "   ⚠️  Vizro  (port 5001) 未运行"
-lsof -i :8000 -t 2>/dev/null | xargs kill 2>/dev/null && echo "   ✅ Shiny  (port 8000) 已停止" || echo "   ⚠️  Shiny  (port 8000) 未运行"
+SIONTILES_PORT=8765
+VIZRO_PORT=5001
+SHINY_PORT=8000
+
+for entry in "SionTiles:$SIONTILES_PORT" "Vizro:$VIZRO_PORT" "Shiny:$SHINY_PORT"; do
+    name="${entry%%:*}"
+    port="${entry##*:}"
+    pids=$(lsof -i :"$port" -t 2>/dev/null)
+    if [ -n "$pids" ]; then
+        echo "$pids" | xargs -r kill 2>/dev/null
+        echo "   ✅ $name (port $port) 已停止 (PID: $(echo $pids | tr '\n' ' '))"
+    else
+        echo "   ⚠️  $name (port $port) 未运行"
+    fi
+done
 
 echo "完成。"

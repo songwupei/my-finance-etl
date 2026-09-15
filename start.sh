@@ -17,14 +17,16 @@ SIONTILES_LOG="$LOG_DIR/siontiles.log"
 SHINY_LOG="$LOG_DIR/shiny.log"
 VIZRO_LOG="$LOG_DIR/vizro.log"
 
-KILL_SIONTILES="lsof -i :8765 -t 2>/dev/null | xargs kill 2>/dev/null"
-KILL_SHINY="$SCRIPT_DIR/kill_shiny.sh"
-KILL_VIZRO="$SCRIPT_DIR/kill.sh"
-
 SIONTILES_PORT=8765
 SHINY_PORT=8000
 VIZRO_PORT=5001
-SIONTILES_DIR="/home/song/NutstoreFiles/projects/SionTiles/web"
+SIONTILES_DIR="/home/songwp/projects/SionTiles/web"
+
+# 清理命令一律按“本脚本实际使用的端口”匹配，避免端口与 kill 脚本不一致时
+# 残留进程占住 DuckDB 锁，导致 Shiny 启动失败。
+KILL_SIONTILES="lsof -i :$SIONTILES_PORT -t 2>/dev/null | xargs -r kill 2>/dev/null"
+KILL_SHINY="lsof -i :$SHINY_PORT -t 2>/dev/null | xargs -r kill 2>/dev/null"
+KILL_VIZRO="lsof -i :$VIZRO_PORT -t 2>/dev/null | xargs -r kill 2>/dev/null"
 
 TITLE="财务数据分析平台 v1.6.4"
 MENU_TEXT="两个服务将同时启动。请选择要打开的页面:"
@@ -35,11 +37,11 @@ if [ -t 0 ] && ! command -v whiptail &>/dev/null; then
     exit 1
 fi
 
-# ---- 检查 micromamba ----
-if ! command -v micromamba &>/dev/null; then
-    echo "❌ 未安装 micromamba"
-    exit 1
-fi
+# # ---- 检查 micromamba ----
+# if ! command -v micromamba &>/dev/null; then
+#     echo "❌ 未安装 micromamba"
+#     exit 1
+# fi
 
 # ---- 显示菜单 ----
 if [ -t 0 ]; then
@@ -59,7 +61,9 @@ else
     echo "  2) 个人电脑办公大屏 (Shiny) — port $SHINY_PORT"
     echo ""
     echo -n "请选择 [1-2] (默认: 1): "
-    read CHOICE_NUM
+    # stdin 处于 EOF（cron / nohup / </dev/null）时 read 返回非 0，
+    # 在 set -e 下会静默退出且不启动任何服务，因此显式兜底。
+    read CHOICE_NUM || CHOICE_NUM=1
     case "${CHOICE_NUM:-1}" in
         1) CHOICE="vizro" ;;
         2) CHOICE="shiny" ;;
@@ -75,8 +79,8 @@ fi
 # ---- 杀掉已有进程 ----
 echo "🔧 清理已有进程..."
 eval "$KILL_SIONTILES" 2>/dev/null || true
-bash "$KILL_SHINY" 2>/dev/null || true
-bash "$KILL_VIZRO" 2>/dev/null || true
+eval "$KILL_SHINY" 2>/dev/null || true
+eval "$KILL_VIZRO" 2>/dev/null || true
 sleep 1
 
 echo "⏳ 启动服务（串行，避免 DuckDB 锁冲突）..."
@@ -99,6 +103,9 @@ for i in $(seq 1 10); do
     fi
     sleep 1
 done
+if ! curl -s "http://localhost:$SIONTILES_PORT" >/dev/null 2>&1; then
+    echo "   ⚠️  SionTiles 未就绪 (port $SIONTILES_PORT)，地图 iframe 将不可用；日志: $SIONTILES_LOG"
+fi
 
 # ---- 先启动 Shiny（需要写 DuckDB，独占锁）----
 echo "🚀 启动 个人电脑办公大屏 (Shiny)  port $SHINY_PORT ..."
@@ -117,6 +124,10 @@ for i in $(seq 1 30); do
     fi
     sleep 1
 done
+if ! curl -s "http://localhost:$SHINY_PORT" >/dev/null 2>&1; then
+    echo "   ❌ Shiny 启动失败 (port $SHINY_PORT)，请查看日志: $SHINY_LOG"
+    exit 1
+fi
 
 # ---- 再启动 Vizro（只读 DuckDB）----
 echo "🚀 启动 领导汇报大屏 (Vizro)  port $VIZRO_PORT ..."
@@ -135,6 +146,10 @@ for i in $(seq 1 30); do
     fi
     sleep 1
 done
+if ! curl -s "http://localhost:$VIZRO_PORT" >/dev/null 2>&1; then
+    echo "   ❌ Vizro 启动失败 (port $VIZRO_PORT)，请查看日志: $VIZRO_LOG"
+    exit 1
+fi
 
 # ---- 打开浏览器 ----
 echo ""
