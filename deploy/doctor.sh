@@ -305,6 +305,7 @@ find_xelatex() {
     local c
     for c in \
         "$(command -v xelatex 2>/dev/null)" \
+        "$(ls -d "$TINYTEX_DIR"/bin/*/xelatex 2>/dev/null | head -1)" \
         "$(ls -d "$HOME"/.TinyTeX/bin/*/xelatex 2>/dev/null | head -1)" \
         "$(ls -d /usr/local/texlive/*/bin/*/xelatex 2>/dev/null | head -1)"; do
         if [ -n "$c" ] && [ -x "$c" ]; then printf '%s' "$c"; return 0; fi
@@ -325,6 +326,8 @@ tinytex_hint() {
           说明：内网直连 github.com/rstudio/tinytex-releases 会被拦截，
           且官方安装脚本将下载地址硬编码、不支持配置镜像，
           因此这一步由人工在有网环境（或代理下）完成。
+          装好后若不在默认位置，请在 deploy/local.env 指定实际目录：
+              TINYTEX_DIR=/实际/路径/.TinyTeX
           装完若缺中文公文类宏包，可按 deploy/texlive-packages.txt 补：
               tlmgr install $(grep -v '^#' deploy/texlive-packages.txt | grep -v '^$' | tr '\n' ' ')
 EOF
@@ -332,9 +335,10 @@ EOF
 
 if xl="$(find_xelatex)"; then
     ok "xelatex 可用: $xl"
+    ok "TINYTEX_DIR = $TINYTEX_DIR"
 else
     tinytex_hint
-    warn "TinyTeX 未安装（只影响日报 PDF，大屏不受影响）"
+    warn "TinyTeX 未安装或当前用户不可见（TINYTEX_DIR=$TINYTEX_DIR；只影响日报 PDF）"
 fi
 
 # ═══════════════════════════════════════════════════════════

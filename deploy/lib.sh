@@ -107,6 +107,19 @@ deploy_finalize() {
         fi
     fi
 
+    # TinyTeX（日报 PDF 渲染）：存在就加进 PATH，quarto 才能发现 xelatex。
+    # 服务以当前用户身份运行，HOME 未必等于装 TinyTeX 的用户家目录，
+    # 所以按配置目录找，而不是只靠 $HOME/.TinyTeX。
+    if [ -n "$TINYTEX_DIR" ] && [ -d "$TINYTEX_DIR/bin" ]; then
+        local texbin
+        texbin="$(ls -d "$TINYTEX_DIR"/bin/*/ 2>/dev/null | head -1)"
+        if [ -n "$texbin" ]; then
+            PATH="${texbin%/}:$PATH"
+            export PATH
+        fi
+    fi
+    export TINYTEX_DIR
+
     # 一并传给子进程，Python 侧后续可复用同一份路径定义
     export PROJECTS_ROOT BIND_HOST
     export SIONTILES_PORT SHINY_PORT VIZRO_PORT
