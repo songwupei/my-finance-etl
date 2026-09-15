@@ -13,7 +13,11 @@ TODAY=$(date +%Y%m%d)
 # 本脚本位于 <仓库>/scripts/hooks/，据此定位仓库根，避免写死机器相关路径：
 #   外网 /home/song/NutstoreFiles/projects/my-finance-etl
 #   内网 /home/songwp/projects/my-finance-etl
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# readlink -f 先把软链解析成真实文件：filepulse 侧通常以软链部署本脚本
+# （projects/filepulse/hooks/treasury_daily.sh -> 本文件），
+# 若不解析，下面的 ../.. 会落到 projects/ 而不是仓库根。
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 LOG_DIR="$PROJECT_ROOT/logs"
