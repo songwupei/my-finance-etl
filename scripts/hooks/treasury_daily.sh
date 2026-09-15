@@ -9,7 +9,14 @@ if [[ "${1:-}" == "--send-only" ]]; then
 fi
 
 TODAY=$(date +%Y%m%d)
-LOG_DIR="/home/song/NutstoreFiles/projects/my-finance-etl/logs"
+
+# 本脚本位于 <仓库>/scripts/hooks/，据此定位仓库根，避免写死机器相关路径：
+#   外网 /home/song/NutstoreFiles/projects/my-finance-etl
+#   内网 /home/songwp/projects/my-finance-etl
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+LOG_DIR="$PROJECT_ROOT/logs"
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/treasury_daily_${TODAY}.log"
 START_TS=$(date +%s)
@@ -92,7 +99,7 @@ else
         step_header 1 "${step_names[0]}"
         log "启动 Kedro pipeline: treasury_data ..."
         if safe_pipe micromamba run -n myetl bash -c "
-          cd /home/song/NutstoreFiles/projects/my-finance-etl &&
+          cd $PROJECT_ROOT &&
           kedro run --pipeline=treasury_data
         "; then
             mark_done "step1"
@@ -116,7 +123,7 @@ else
         step_header 2 "${step_names[1]}"
         log "渲染 daily_report_account-gb.qmd → PDF ..."
         if safe_pipe micromamba run -n quarto bash -c "
-          cd /home/song/NutstoreFiles/projects/my-finance-etl/generated_reports &&
+          cd $PROJECT_ROOT/generated_reports &&
           quarto render daily_report_account-gb.qmd
         "; then
             mark_done "step2"
@@ -135,7 +142,7 @@ if is_done "step3"; then
     step_skip 3 "${step_names[2]}"
 else
     step_header 3 "${step_names[2]}"
-    PDF_PATH="/home/song/NutstoreFiles/projects/my-finance-etl/generated_reports/daily_report_account-gb.pdf"
+    PDF_PATH="$PROJECT_ROOT/generated_reports/daily_report_account-gb.pdf"
     EMAIL_FROM="${EMAIL_FROM:-songwupei@qq.com}"
     EMAIL_TO="${EMAIL_TO:-songwupei@163.com}"
     EMAIL_SUBJECT="${EMAIL_SUBJECT_PREFIX:-司库日报}${TODAY}"

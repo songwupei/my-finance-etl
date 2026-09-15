@@ -4,7 +4,12 @@ from pathlib import Path
 
 import yaml
 
-from ..my_finance_shared import DB_PATH, _proj_dir, get_db_path as _get_db_path
+from ..my_finance_shared import (
+    DB_PATH,
+    PROJECTS_ROOT,
+    _proj_dir,
+    get_db_path as _get_db_path,
+)
 
 # YAML mapping for /api/node_data validation
 _yaml_mapping_path = _proj_dir / "conf/base/finance_mapping_standard.yaml"
@@ -39,9 +44,9 @@ def _get_email_config():
     return {}
 
 
-_QUARTO_PDF = Path("/home/song/NutstoreFiles/projects/PrettyDoc/_output/reports/SiKuReport/daily_report/daily_report_account-gb.pdf")
+_QUARTO_PDF = PROJECTS_ROOT / "PrettyDoc/_output/reports/SiKuReport/daily_report/daily_report_account-gb.pdf"
 
-_TREASURY_CONFIG = Path("/home/song/NutstoreFiles/projects/filepulse/config_treasury.toml")
+_TREASURY_CONFIG = PROJECTS_ROOT / "filepulse/config_treasury.toml"
 
 
 def _get_send_script() -> Path:
@@ -53,7 +58,7 @@ def _get_send_script() -> Path:
             if entry.get("name") == "siku_account" and entry.get("on_after_process"):
                 return Path(entry["on_after_process"])
     # fallback 路径
-    return Path("/home/song/NutstoreFiles/projects/filepulse/hooks/treasury_daily.sh")
+    return PROJECTS_ROOT / "filepulse/hooks/treasury_daily.sh"
 
 
 _SEND_SCRIPT = _get_send_script()

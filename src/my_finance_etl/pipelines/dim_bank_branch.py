@@ -6,6 +6,8 @@ import polars as pl
 from kedro.pipeline import Pipeline, node
 from pathlib import Path
 
+from my_finance_shared import NUTSTORE_ROOT
+
 logger = logging.getLogger(__name__)
 
 
@@ -100,7 +102,7 @@ def build_dim_bank_branch(parsed_treasury_account_info: pl.DataFrame,
     # 3. Geocode from cache (BQBankBranch_geo.parquet), fallback to NULL placeholders
     geo_path = Path(bank_cfg.get(
         "geo_cache_path",
-        "/home/song/NutstoreFiles/8-MyData/GeoData/geo_bank.parquet",
+        str(NUTSTORE_ROOT / "8-MyData/GeoData/geo_bank.parquet"),
     ))
     if geo_path.exists():
         geo = pl.read_parquet(str(geo_path))
