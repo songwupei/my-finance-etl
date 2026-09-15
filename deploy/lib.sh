@@ -54,8 +54,12 @@ deploy_load() {
     fi
 
     if [ -r "$deploy_dir/local.env" ]; then
+        # set -a：把本机覆盖（含敏感值）导出给子进程，
+        # Python 侧（my_finance_shared.config）也能直接读到。
+        set -a
         # shellcheck source=/dev/null
         source "$deploy_dir/local.env"
+        set +a
     fi
 
     deploy_finalize "$root"

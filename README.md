@@ -22,7 +22,8 @@ skdata-etl/
 │   │   ├── standard_accountsv1.0.json
 │   │   └── finance_mapping_standard.yaml # 财务指标映射标准配置
 │   │── local/
-│   │   └── credentials.yml        # 数据库凭证
+│   │   ├── parameters.yml         # 本机参数覆盖（含 database.con）
+│   │   └── credentials.yml.example # 凭据模板（真实文件已移出版本控制）
 │   └── filepulse/
 │       └── config_treasury.toml   # filepulse配置文件(v1.6.9新增)
 ├── src/my_finance_etl/            # 源码

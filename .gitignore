@@ -17,6 +17,9 @@ __pycache__/
 # 部署本机覆盖（机器差异 + 敏感值，见 deploy/README.md）
 deploy/local.env
 
+# 本地凭据（敏感值已改走环境变量，见 conf/local/credentials.yml.example）
+conf/local/credentials.yml
+
 # Generated outputs
 generated_reports/
 logs/

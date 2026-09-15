@@ -11,6 +11,16 @@ import yaml
 _proj_dir = Path(__file__).resolve().parent.parent.parent
 PROJECT_ROOT = _proj_dir
 
+# 加载 deploy/local.env（已 gitignore、权限 600）里的本机覆盖与敏感值。
+# 放在模块顶部执行，任何 import 本模块的进程都能拿到这些环境变量；
+# override=False 保证调用者已设置的环境变量优先。
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(_proj_dir / "deploy/local.env", override=False)
+except ImportError:  # python-dotenv 未安装时不阻断
+    pass
+
 # 同级项目（SionTiles / filepulse / PrettyDoc）所在目录。
 # 两台机器上本仓库都直接位于 projects/ 下，因此从仓库位置推导即可；
 # 也允许用环境变量 PROJECTS_ROOT 覆盖（start.sh 会导出）。
